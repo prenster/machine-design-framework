@@ -36,6 +36,7 @@ COMPAT = {
     ("vacuum_out", "vacuum_in"): [("thread", "eq")],
     ("fieldbus", "fieldbus"): [("protocol", "eq")],
     ("mount_male", "mount_female"): [("pattern", "eq")],
+    ("tube_out", "tube_in"): [("od_mm", "eq")],
 }
 
 
@@ -53,7 +54,7 @@ def parts_by_id(proj: Project) -> dict:
 # -------------------------------------------------------------- interfaces
 def check_interfaces(proj: Project) -> list[CheckResult]:
     parts = parts_by_id(proj)
-    issues, ok = [], 0
+    issues, unverified, ok = [], [], 0
     connected = set()
     for a_ref, b_ref in proj.data["bom"].get("connections", []):
         try:
@@ -81,7 +82,7 @@ def check_interfaces(proj: Project) -> list[CheckResult]:
         for key, rel in rules:
             va, vb = pa.get("spec", {}).get(key), pb.get("spec", {}).get(key)
             if va is None or vb is None:
-                issues.append(f"{a_ref} - {b_ref}: '{key}' missing on one side, cannot verify")
+                unverified.append(f"{a_ref} - {b_ref}: '{key}' not known on one side: NOT VERIFIED (look it up)")
                 bad = True
             elif rel == "eq" and va != vb:
                 issues.append(f"{a_ref} - {b_ref}: {key} {va} != {vb}")
@@ -94,8 +95,10 @@ def check_interfaces(proj: Project) -> list[CheckResult]:
         for port in part.get("ports", []):
             if port.get("required") and (pid, port["name"]) not in connected:
                 issues.append(f"{pid}.{port['name']} ({port['type']}) is required but not connected")
-    return [CheckResult("BOM-IFACE", FAIL if issues else PASS,
-                        f"{ok} connections verified, {len(issues)} conflicts", issues)]
+    status = FAIL if issues else (WARN if unverified else PASS)
+    return [CheckResult("BOM-IFACE", status,
+                        f"{ok} connections verified, {len(issues)} conflicts, {len(unverified)} unverified",
+                        issues + unverified)]
 
 
 # ------------------------------------------------------------ cross-refs
@@ -175,17 +178,19 @@ def axis_derived(proj: Project) -> dict:
             eta = float(_spec(mod, "efficiency") or 0.9)
             fric = float(_spec(mod, "friction_n") or 0.0)
             vertical = (_spec(mod, "orientation") == "vertical")
-            j = (float(_spec(mot, "rotor_inertia_kgcm2")) + float(_spec(mod, "input_inertia_kgcm2") or 0.0)) * 1e-4
+            fric_t = float(_spec(mod, "friction_torque_nm") or 0.0)   # load-independent drag torque at the input
+            j = (float(_spec(mot, "rotor_inertia_kgcm2")) + float(_spec(mod, "input_inertia_kgcm2") or 0.0)
+                 + float(_spec(mod, "coupling_inertia_kgcm2") or 0.0)) * 1e-4
             k = feed / (2 * math.pi)                                       # m per rad
             a_si, v_si = acc / 1000.0, vel / 1000.0
             force = m * a_si + (m * G if vertical else 0.0) + fric * np.sign(v_si)
-            torque = force * k / eta + j * a_si / k
+            torque = force * k / eta + j * a_si / k + fric_t * np.sign(v_si)
             d.moving_mass_kg = m
             d.force_peak_n = float(np.max(np.abs(force)))
             d.torque_peak_nm = float(np.max(np.abs(torque)))
             d.torque_rms_nm = float(np.sqrt(np.mean(torque**2)))
             d.speed_peak_rpm = d.v_peak / 1000.0 / feed * 60.0
-            d.inertia_ratio = (m * k**2) / (float(_spec(mot, "rotor_inertia_kgcm2")) * 1e-4)
+            d.inertia_ratio = (m * k**2 + (float(_spec(mod, "input_inertia_kgcm2") or 0.0) + float(_spec(mod, "coupling_inertia_kgcm2") or 0.0)) * 1e-4) / (float(_spec(mot, "rotor_inertia_kgcm2")) * 1e-4)
         out[aid] = d
     return out
 
@@ -202,16 +207,21 @@ def check_sizing(proj: Project) -> list[CheckResult]:
             continue
         d = der[aid]
         rows = [
-            ("speed", d.v_peak, float(_spec(mod, "v_max_mm_s")), "mm/s", 1.0),
-            ("acceleration", d.a_peak, float(_spec(mod, "a_max_mm_s2")), "mm/s^2", 1.0),
-            ("stroke", d.pos_max - min(0.0, d.pos_min), float(_spec(mod, "stroke_mm")), "mm", 1.0),
-            ("payload", d.payload_kg, float(_spec(mod, "payload_max_kg")), "kg", 1.0),
-            ("peak torque x margin", d.torque_peak_nm * margin, float(_spec(mot, "peak_torque_nm")), "Nm", 1.0),
-            ("RMS torque x margin", d.torque_rms_nm * margin, float(_spec(mot, "rated_torque_nm")), "Nm", 1.0),
-            ("motor speed", d.speed_peak_rpm, float(_spec(mot, "max_speed_rpm")), "rpm", 1.0),
+            ("speed", d.v_peak, _spec(mod, "v_max_mm_s"), "mm/s"),
+            ("acceleration", d.a_peak, _spec(mod, "a_max_mm_s2"), "mm/s^2"),
+            ("stroke", d.pos_max - min(0.0, d.pos_min), _spec(mod, "stroke_mm"), "mm"),
+            ("payload", d.payload_kg, _spec(mod, "payload_max_kg"), "kg"),
+            ("module drive torque", d.torque_peak_nm, _spec(mod, "max_drive_torque_nm"), "Nm"),
+            ("peak torque x margin", d.torque_peak_nm * margin, _spec(mot, "peak_torque_nm"), "Nm"),
+            ("RMS torque x margin", d.torque_rms_nm * margin, _spec(mot, "rated_torque_nm"), "Nm"),
+            ("motor speed", d.speed_peak_rpm, _spec(mot, "max_speed_rpm"), "rpm"),
         ]
-        issues, lines = [], []
-        for name, need, have, unit, _ in rows:
+        issues, lines, unv = [], [], []
+        for name, need, have, unit in rows:
+            if have is None:
+                unv.append(f"{name}: need {need:,.2f} {unit}, limit not in BOM: NOT VERIFIED")
+                continue
+            have = float(have)
             line = f"{name}: need {need:,.2f} / have {have:,.2f} {unit} ({need / have:.0%})"
             (issues if need > have else lines).append(line)
         if d.pos_min < -1e-6:
@@ -221,6 +231,7 @@ def check_sizing(proj: Project) -> list[CheckResult]:
         if ir > 10:
             warn.append(f"load/rotor inertia ratio {ir:.1f}:1 > 10:1 - tuning will be soft; consider larger rotor or gearbox")
         lines.append(f"moving mass {d.moving_mass_kg:.2f} kg, peak force {d.force_peak_n:.0f} N, inertia ratio {ir:.1f}:1")
+        warn += unv
         status = FAIL if issues else (WARN if warn else PASS)
         results.append(CheckResult("BOM-SIZING", status,
                                    f"axis {aid} ({spec['module']} + {spec['motor']}) @ {proj.speeds[-1][1]:g} cph, "

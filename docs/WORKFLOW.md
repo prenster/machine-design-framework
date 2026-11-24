@@ -14,6 +14,7 @@ machine builders, scaled to a single chief engineer working with Claude.
 | **4. Manufacture & build** | Machinist drawings, purchase list (3 quotes/line), panel build package, assembly procedure | B | **G4**: Drawings signed by chief engineer before any cutting |
 | **5. Commissioning** | Commissioning procedure, measured vs. predicted report, updated params, as-built repo | A analysis / B docs | **G5**: Acceptance against requirements |
 
+What each gate requires of input fidelity is in `docs/FIDELITY.md`; enforce it with `--gate`.
 Every gate runs the `gate-reviewer` subagent (TIER-A) first. The reviewer reports. Only the human passes the gate.
 
 ## Pilot first

@@ -2,27 +2,197 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Bill of materials with specs, ports and connections",
   "type": "object",
-  "required": ["parts"],
+  "required": [
+    "parts"
+  ],
   "properties": {
-    "parts": {"type": "array", "items": {
-      "type": "object", "required": ["id", "description", "category", "qty", "source"],
-      "additionalProperties": false,
-      "properties": {
-        "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
-        "description": {"type": "string"},
-        "category": {"type": "string"},
-        "qty": {"type": "integer", "minimum": 1},
-        "source": {"enum": ["catalog", "custom", "example"]},
-        "vendor": {"type": "string"},
-        "part_number": {"type": "string"},
-        "custom_reason": {"type": "string"},
-        "moves_with": {"type": "string", "description": "axis id the part rides on (mass counts toward that axis)"},
-        "specs": {"type": "object"},
-        "ports": {"type": "array", "items": {"type": "object", "required": ["name", "type"], "properties": {
-          "name": {"type": "string"}, "type": {"type": "string"}, "spec": {"type": "object"}, "required": {"type": "boolean"}}}}
-      },
-      "allOf": [{"if": {"properties": {"source": {"const": "custom"}}}, "then": {"required": ["custom_reason"]}}]
-    }},
-    "connections": {"type": "array", "items": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*\\.[a-z0-9_]+$"}, "minItems": 2, "maxItems": 2}}
+    "parts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description",
+          "category",
+          "qty",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[A-Z][A-Z0-9_]*$"
+          },
+          "description": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string"
+          },
+          "qty": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "source": {
+            "enum": [
+              "catalog",
+              "custom",
+              "example"
+            ]
+          },
+          "vendor": {
+            "type": "string"
+          },
+          "part_number": {
+            "type": "string"
+          },
+          "custom_reason": {
+            "type": "string"
+          },
+          "moves_with": {
+            "type": "string",
+            "description": "axis id the part rides on (mass counts toward that axis)"
+          },
+          "specs": {
+            "type": "object"
+          },
+          "ports": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "name",
+                "type"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string"
+                },
+                "spec": {
+                  "type": "object"
+                },
+                "required": {
+                  "type": "boolean"
+                }
+              }
+            }
+          },
+          "fidelity": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "specs": {
+                "enum": [
+                  "estimate",
+                  "datasheet",
+                  "measured"
+                ],
+                "description": "estimate = plausible guess; datasheet = copied from the vendor datasheet (evidence url required); measured = from a physical test"
+              },
+              "geometry": {
+                "enum": [
+                  "estimate",
+                  "datasheet_envelope",
+                  "vendor_step",
+                  "measured"
+                ],
+                "description": "estimate = guessed envelope; datasheet_envelope = envelope from the vendor dimension drawing; vendor_step = vendor CAD file in cad/vendor/; measured = from the physical part"
+              }
+            }
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "url"
+              ],
+              "properties": {
+                "url": {
+                  "type": "string"
+                },
+                "note": {
+                  "type": "string"
+                },
+                "accessed": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "step_file": {
+            "type": "string"
+          },
+          "lead_time": {
+            "type": "string"
+          },
+          "price_usd": {
+            "type": "number"
+          },
+          "unverified": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "spec keys that are still estimates on an otherwise datasheet part"
+          }
+        },
+        "allOf": [
+          {
+            "if": {
+              "properties": {
+                "source": {
+                  "const": "custom"
+                }
+              }
+            },
+            "then": {
+              "required": [
+                "custom_reason"
+              ]
+            }
+          },
+          {
+            "if": {
+              "properties": {
+                "fidelity": {
+                  "properties": {
+                    "specs": {
+                      "const": "datasheet"
+                    }
+                  },
+                  "required": [
+                    "specs"
+                  ]
+                }
+              },
+              "required": [
+                "fidelity"
+              ]
+            },
+            "then": {
+              "required": [
+                "evidence"
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]*\\.[a-z0-9_]+$"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    }
   }
 }

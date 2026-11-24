@@ -32,6 +32,7 @@ pip install -r requirements.txt
 make verify          # example station: PASS (physical tests still pending)
 make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
 make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
+PYTHONPATH=tools python3 -m mdf verify <dir> --gate G3   # enforce what detailed design requires
 ```
 
 Output: a console verdict, `build/report.md` (checks, traceability, assumption audit), `build/side_view.svg`,
@@ -41,7 +42,7 @@ Output: a console verdict, `build/report.md` (checks, traceability, assumption a
 
 ![Side view of the example station](docs/img/side_view.png)
 
-*Example station (illustrative): pick an endsheet from a stack, pass it over a glue jet, place it on a
+*Example station: pick an endsheet from a stack, pass it over a glue jet, place it on a
 signature. Carrier and sheet at pick (blue), glue (orange) and place (green); dashed line is the carrier path.*
 
 ## What's verified today
@@ -56,6 +57,7 @@ signature. Carrier and sheet at pick (blue), glue (orange) and place (green); da
 | Electrical | I/O channels, voltage/current vs card ratings, safety devices on safety inputs |
 | PLC | Generated timing/I-O lists in sync; the **real Structured Text program** run scan-by-scan against the plant with fault injection (missed pick, empty stack, double sheet, guard, e-stop, air loss) |
 | Trace | Every requirement verified by a check, test or review; every PASS lists the unmeasured numbers it rests on |
+| Fidelity | Every part/number marked estimate → datasheet → vendor STEP → measured, with sources; unknowns reported as NOT VERIFIED; a ranked **human action queue** (download, look up, test, review, quote) on every run |
 
 See [`docs/VERIFICATION.md`](docs/VERIFICATION.md) for the trust ladder and what **no** check covers.
 
@@ -74,6 +76,8 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Phases, gates G0-G5, working session, repo layout for a real machine |
 | [`docs/MODEL_TIERS.md`](docs/MODEL_TIERS.md) | Which model for which task |
 | [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | What the checks prove and don't |
+| [`docs/FIDELITY.md`](docs/FIDELITY.md) | Fidelity ladder, human action queue, gate enforcement |
+| [`docs/ANALOGY.md`](docs/ANALOGY.md) | Where the software analogy holds and where it breaks |
 | [`docs/PHYSICAL_TESTS.md`](docs/PHYSICAL_TESTS.md) | Cheap real-world tests, calibration loop |
 | [`docs/TOOLCHAIN.md`](docs/TOOLCHAIN.md) | Tools, viewers, SEW MOVISUITE, bench controller, paid options |
 | [`docs/REQUIREMENTS.md`](docs/REQUIREMENTS.md) | Requirements for the framework itself, with status |
@@ -84,6 +88,13 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | `tools/mdf/` | Verification toolchain |
 | `examples/` | Passing example (with `cad/`, `plc/`, BOM, I/O, SIL scenarios) and deliberately broken copy (`FAULTS.md`) |
 | `templates/` | How to start a new station |
+
+## The example's parts
+
+Drive train and vacuum are real catalog parts with datasheet links (Festo ELGA-TB-G-80 belt axis and EGSL-45
+slide, SEW CM3C63L and CMP40M servomotors, Schmalz SCPMc 10 ejector). The rest are flagged estimates in the
+action queue. Swapping in the real parts broke two example assumptions (axis acceleration, vacuum build time);
+both were fixed in the design. See the commit history.
 
 ## Disclaimer
 

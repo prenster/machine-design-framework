@@ -42,7 +42,12 @@ Then read `docs/PHILOSOPHY.md` once per session.
     via `make plc`. Edit the source, regenerate, commit both.
 11. **Specs live once.** A datasheet number lives in `bom.yaml`; `params.yaml` references it with
     `from_part`. An assumed number may never be more optimistic than the datasheet (constraint guards).
-12. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
+12. **Never upgrade fidelity by guessing.** A spec copied from a datasheet gets `fidelity.specs: datasheet`
+    and an `evidence` url; anything still guessed stays `estimate` or goes in `unverified`. An unknown is
+    reported as NOT VERIFIED, never filled in to make a check pass. See `docs/FIDELITY.md`.
+13. **When the software analogy doesn't fit, say so** (`docs/ANALOGY.md`): models are not the machine,
+    parts vary, iteration costs money, and irreversible steps belong to a human.
+14. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
     speed. Valve and sensor delays are fixed in milliseconds, so they shift in degrees as speed changes.
 
 ## 3. Definition of done (any design change)
@@ -51,7 +56,8 @@ Then read `docs/PHILOSOPHY.md` once per session.
 - New or changed requirements are linked to checks or tests.
 - New assumptions have a calibrating test in `tests.yaml`.
 - You list for the human: (a) decisions you made that need review, (b) the physical tests still owed,
-  (c) anything the checks do **not** cover (see `docs/VERIFICATION.md` coverage table).
+  (c) anything the checks do **not** cover (see `docs/VERIFICATION.md` coverage table), (d) the top of the
+  human action queue (DOWNLOAD / LOOKUP / TEST / QUOTE) from the report.
 - Commit with a message that states what changed and the verify verdict.
 
 ## 4. Model-switch banner

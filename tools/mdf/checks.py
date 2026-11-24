@@ -36,6 +36,7 @@ class CheckResult:
     summary: str
     details: list[str] = field(default_factory=list)
     speed: str | None = None
+    data: dict = field(default_factory=dict)
 
 
 def in_window(theta: float, window) -> bool:

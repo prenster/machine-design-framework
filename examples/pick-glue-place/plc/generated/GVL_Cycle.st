@@ -1,4 +1,4 @@
-(* GENERATED from cycle.yaml - DO NOT EDIT. source-hash: d747394b20adf07e *)
+(* GENERATED from cycle.yaml - DO NOT EDIT. source-hash: d69a4f2e1565a2d4 *)
 (* Commanded angles (deg). Effective timing = commanded + device delay; see GLUE-BEAD/PROD-* checks. *)
 VAR_GLOBAL CONSTANT
     VACUUM_ON  : REAL := 10.0000;

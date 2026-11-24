@@ -39,6 +39,13 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 | FR-029 | Project constraint rules across specs (budgets, frequencies, assumption-vs-datasheet guards) | done |
 | FR-030a | I/O mapping: channel, voltage, current, safety-rating checks | done |
 | FR-031a | 3D model exported (STEP, GLB) and rendered to an image on every verify | done |
+| FR-032a | Fidelity ladder on every part spec, part geometry and parameter, with evidence urls | done |
+| FR-033a | Unknown values reported as NOT VERIFIED (WARN), never silently passed | done |
+| FR-034a | Human action queue (DOWNLOAD/LOOKUP/TEST/REVIEW/QUOTE/REGEN), ranked by criticality, on every run | done |
+| FR-035a | Geometry criticality from the 3D sweep decides when a vendor STEP is required | done |
+| FR-036a | `--gate` enforcement of fidelity requirements per gate | done |
+| FR-037a | Assumptions guarded against datasheet values (constraint rules) | done |
+| FR-038a | Vendor STEP import into the 3D sweep (cad/vendor/) | roadmap |
 
 ## Process and roles
 

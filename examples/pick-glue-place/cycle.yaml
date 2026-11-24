@@ -18,8 +18,8 @@ axes:
       - {law: poly5,     from: 50,  to: 110, s0: 0,   s1: 260, v0: 0,   v1: 2.0, note: "accelerate into constant-velocity glue pass"}
       - {law: linear,    from: 110, to: 150, s0: 260, s1: 340, note: "glue pass at constant velocity, 2.0 mm/deg"}
       - {law: poly5,     from: 150, to: 210, s0: 340, s1: 600, v0: 2.0, v1: 0, note: "to place port; Z is up before the sheet reaches the backstop"}
-      - {law: dwell,     from: 210, to: 265, at: 600, note: "place: Z descends, vacuum releases, press, Z lifts"}
-      - {law: cycloidal, from: 265, to: 345, s0: 600, s1: 0, note: "unloaded return"}
+      - {law: dwell,     from: 210, to: 255, at: 600, note: "place: Z descends, vacuum releases, press; X leaves once the plate is ~10 mm up"}
+      - {law: cycloidal, from: 255, to: 345, s0: 600, s1: 0, note: "unloaded return; 90 deg keeps peak accel under the ELGA-80 50 m/s2 rating"}
       - {law: dwell,     from: 345, to: 360, at: 0}
 
   z_lift:

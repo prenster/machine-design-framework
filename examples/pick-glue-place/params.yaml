@@ -6,11 +6,14 @@ params:
   speed_max_cph: {value: 3000, unit: cycles/h, source: requirement}
 
   x_vmax_mm_s:   {value: 5000,  unit: mm/s,   source: datasheet, from_part: X_MODULE.v_max_mm_s, note: "belt module catalog rating, derate to 80% at release"}
-  x_amax_mm_s2:  {value: 60000, unit: mm/s^2, source: datasheet, from_part: X_MODULE.a_max_mm_s2}
+  x_amax_mm_s2:  {value: 50000, unit: mm/s^2, source: datasheet, from_part: X_MODULE.a_max_mm_s2}
   z_vmax_mm_s:   {value: 1000,  unit: mm/s,   source: datasheet, from_part: Z_MODULE.v_max_mm_s}
-  z_amax_mm_s2:  {value: 30000, unit: mm/s^2, source: datasheet, from_part: Z_MODULE.a_max_mm_s2}
+  z_amax_mm_s2:  {value: 25000, unit: mm/s^2, source: datasheet, from_part: Z_MODULE.a_max_mm_s2}
 
-  vac_on_delay_ms:   {value: 15,  unit: ms, source: assumed, calibrated_by: PT-03, note: "time to hold-force after valve command, incl. hose volume"}
+  vac_on_delay_ms:   {value: 22,  unit: ms, source: assumed, calibrated_by: PT-03,
+                      note: "raised from 15 ms: ejector datasheet (1.00 s/l to 400 mbar) x 15 ml + valve response = 20 ms (C-VAC-ASSUME)"}
+  vac_volume_l:      {value: 0.015, unit: l, source: assumed, calibrated_by: PT-03, note: "plate chamber + 0.5 m of 6 mm tube (4 mm bore)"}
+  z_torque_limit_nm: {value: 0.5, unit: Nm, source: requirement, note: "inverter torque limit for Z: the CMP40M can exceed the EGSL's max drive torque"}
   vac_off_delay_ms:  {value: 10,  unit: ms, source: assumed, calibrated_by: PT-03, note: "time to release with blow-off pulse"}
   glue_on_delay_ms:  {value: 1.5, unit: ms, source: assumed, calibrated_by: PT-04}
   glue_off_delay_ms: {value: 2.5, unit: ms, source: assumed, calibrated_by: PT-04}

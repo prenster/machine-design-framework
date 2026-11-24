@@ -167,5 +167,6 @@ def run_3d(proj, out_dir: Path | None = None) -> list[CheckResult]:
             details.append(f"tightest OK: {a} vs {b}: {d:.2f} mm at {t:.1f} deg (margin {margin:.2f} mm)")
         results.append(CheckResult("SWEEP-3D", FAIL if viol else PASS,
                                    f"{len(meshes)} bodies, {len(pairs)} pairs x {len(frange(step))} steps @ {cph:g} cph, "
-                                   f"{len(viol)} pairs in violation", details, speed=name))
+                                   f"{len(viol)} pairs in violation", details, speed=name,
+                                   data={"worst": {k: v[0] for k, v in worst.items()}}))
     return results

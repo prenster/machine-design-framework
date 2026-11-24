@@ -21,6 +21,8 @@ def main(argv=None) -> int:
     v = sub.add_parser("verify", help="run every check on a station project")
     v.add_argument("project")
     v.add_argument("--out", default=None, help="output dir (default <project>/build)")
+    v.add_argument("--gate", default=None, choices=["G1", "G2", "G3", "G4", "G5"],
+                   help="enforce fidelity/actions required for this gate")
     g = sub.add_parser("plc", help="regenerate PLC GVLs from cycle.yaml / io_list.yaml")
     g.add_argument("project")
     args = ap.parse_args(argv)
@@ -42,7 +44,13 @@ def main(argv=None) -> int:
     audit = assumption_audit(proj)
     out = Path(args.out) if args.out else proj.root / "build"
     out.mkdir(parents=True, exist_ok=True)
-    (out / "report.md").write_text(markdown(proj, results, trace, audit))
+    from .actions import build as build_actions
+    actions = build_actions(proj, results)
+    verdict = overall(results, trace, audit)
+    blocking = [a for a in actions if args.gate and a.blocks_by(args.gate)]
+    if blocking:
+        verdict = "FAIL"
+    (out / "report.md").write_text(markdown(proj, results, trace, audit, actions, args.gate, verdict))
     side_view_svg(proj, out / "side_view.svg")
     if "assembly3d" in proj.data:
         try:
@@ -62,7 +70,14 @@ def main(argv=None) -> int:
             print(f"[{t['status']:4}] {t['id']:16} {t['note']}")
     pending = sum(1 for a in audit if a["status"] == "PENDING")
     print(f"\n{pending} assumed parameters awaiting physical calibration (see report).")
-    verdict = overall(results, trace, audit)
+    kinds = {}
+    for a in actions:
+        kinds[a.kind] = kinds.get(a.kind, 0) + 1
+    print("human actions: " + (", ".join(f"{v} {k}" for k, v in sorted(kinds.items())) or "none"))
+    for a in [a for a in actions if a.priority == 1][:8]:
+        print(f"  [{a.kind}] {a.item}: {a.why} (blocks {a.blocks})")
+    if args.gate:
+        print(f"gate {args.gate}: {len(blocking)} blocking actions")
     print(f"VERDICT: {verdict}   report: {out / 'report.md'}")
     return 1 if verdict == FAIL else 0
 

@@ -77,8 +77,9 @@ def overall(results, trace, audit) -> str:
     return worst
 
 
-def markdown(proj: Project, results, trace, audit) -> str:
-    verdict = overall(results, trace, audit)
+def markdown(proj: Project, results, trace, audit, actions=None, gate=None, verdict=None) -> str:
+    from .actions import fidelity_summary
+    verdict = verdict or overall(results, trace, audit)
     name = proj.data["requirements"].get("station", proj.root.name)
     out = [f"# Verification report: {name}", "",
            f"**Verdict: {verdict}** (FAIL blocks the gate; PENDING items are physical tests still owed)", "",
@@ -100,6 +101,16 @@ def markdown(proj: Project, results, trace, audit) -> str:
             "| Parameter | Value | Status | Note |", "|---|---|---|---|"]
     for a in audit:
         out.append(f"| {a['param']} | {a['value']} {a['unit']} | {a['status']} | {a['note']} |")
+    fs = fidelity_summary(proj)
+    if fs:
+        out += ["", "## Fidelity", "", "How good the inputs are (see docs/FIDELITY.md):", ""] + [f"- {x}" for x in fs]
+    if actions is not None:
+        out += ["", "## Human action queue", "",
+                f"What a person needs to download, look up, test, review or quote. "
+                f"{'Gate ' + gate + ' enforced: items blocking it are failures.' if gate else 'Not gate-enforced (run with --gate G1..G4).'}",
+                "", "| Pri | Action | Item | Why | Blocks | Effort |", "|---|---|---|---|---|---|"]
+        for a in actions:
+            out.append(f"| {a.priority} | {a.kind} | {a.item} | {a.why} | {a.blocks} | {a.effort} |")
     return "\n".join(out) + "\n"
 
 

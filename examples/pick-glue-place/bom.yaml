@@ -1,70 +1,124 @@
 # Bill of materials with specs, ports and connections.
-# EXAMPLE values: plausible but illustrative, not real catalog items (source: example).
+# Drive train and vacuum: real catalog parts with datasheet evidence (fidelity.specs: datasheet).
+# Everything marked fidelity.specs: estimate is a plausible placeholder: it shows up in the human
+# action queue until someone looks it up. Geometry is still envelopes (fidelity.geometry: estimate).
 # In a real project every catalog part carries vendor + part_number and specs copied from the datasheet.
 parts:
   # ---------------- X axis (static base; carriage moves) ----------------
   - id: X_MODULE
-    description: "Belt-driven linear module, 700 mm stroke"
+    description: "Festo ELGA-TB-G-80 toothed belt axis, plain-bearing guide, 700 mm stroke"
     category: linear_module
     qty: 1
-    source: example
-    specs: {v_max_mm_s: 5000, a_max_mm_s2: 60000, stroke_mm: 700, payload_max_kg: 10, feed_mm_per_rev: 100,
-            efficiency: 0.9, friction_n: 20, carriage_mass_kg: 1.2, input_inertia_kgcm2: 0.4, orientation: horizontal}
+    source: catalog
+    vendor: Festo
+    part_number: "ELGA-TB-G-80-700 (base 570503; full code from configurator)"
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://ftp.festo.com/public/pneumatic/SOFTWARE_SERVICE/DataSheet/EN_GB/570503.pdf", note: "feed constant, JO, slide weight", accessed: "2026-11-23"}
+      - {url: "https://www.festo.com/tw/en/a/download-document/datasheet/570503", note: "max accel/speed, Fx 800 N, friction torque 1 Nm", accessed: "2026-11-23"}
+    unverified: [efficiency, "payload_max_kg (guide moments: run Festo PositioningDrives with the real CoG)", input_inertia_kgcm2 (stroke-dependent part)]
+    specs: {v_max_mm_s: 5000, a_max_mm_s2: 50000, stroke_mm: 700, feed_mm_per_rev: 125, max_feed_force_n: 800,
+            max_drive_torque_nm: 15.9,
+            efficiency: 0.9, friction_torque_nm: 1.0, carriage_mass_kg: 1.1, input_inertia_kgcm2: 6.66, orientation: horizontal}
     ports:
-      - {name: drive_shaft, type: shaft_in, spec: {diameter_mm: 14}, required: true}
-      - {name: carriage, type: mount_female, spec: {pattern: "ZX-60"}}
+      - {name: drive_shaft, type: shaft_in, spec: {}, required: true}
+      - {name: carriage, type: mount_female, spec: {pattern: "ELGA-80 slide"}}
+  - id: KIT_X
+    description: "Axial motor mounting kit, ELGA-TB-G-80 to SEW CM3C63L (Festo EAMM-A or custom adapter)"
+    category: motor_kit
+    qty: 1
+    source: catalog
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {coupling_inertia_kgcm2: 0.3}
+    ports:
+      - {name: motor_side, type: shaft_in, spec: {}, required: true}
+      - {name: axis_side, type: shaft_out, spec: {}, required: true}
   - id: X_MOTOR
-    description: "Servo motor, X axis"
+    description: "SEW-EURODRIVE CM3C63L synchronous servomotor, medium inertia, speed class 3000"
     category: servo_motor
     qty: 1
-    source: example
-    specs: {rated_torque_nm: 3.3, peak_torque_nm: 10.5, max_speed_rpm: 4500, rotor_inertia_kgcm2: 2.2, mass_kg: 3.1}
+    source: catalog
+    vendor: SEW-EURODRIVE
+    part_number: "CM3C63L (options from SEW configurator)"
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://kz.sew-eurodrive.com/products/motors/servomotors/synchronous-servomotors-cm3c/synchronous-servomotors-cm3c.html", note: "CM3C63L: M0 6.4 Nm, Mpk 19.2 Nm, 5.85 kg, Jmot 3.6e-4 kgm2 (63M had 10.2:1 inertia ratio)", accessed: "2026-11-23"}
+      - {url: "https://download.sew-eurodrive.com/download/pdf/29194652.pdf", note: "full catalog: confirm M0 and currents for the chosen speed class", accessed: "2026-11-23"}
+    unverified: [rated_torque_nm, max_speed_rpm, shaft diameter, current_a]
+    specs: {rated_torque_nm: 6.4, peak_torque_nm: 19.2, max_speed_rpm: 3000, rotor_inertia_kgcm2: 3.6, mass_kg: 5.85}
     ports:
-      - {name: shaft, type: shaft_out, spec: {diameter_mm: 14}, required: true}
-      - {name: power, type: motor_power_in, spec: {voltage_v: 400, current_a: 4.6}, required: true}
-      - {name: feedback, type: encoder_out, spec: {protocol: "single-cable digital"}, required: true}
+      - {name: shaft, type: shaft_out, spec: {}, required: true}
+      - {name: power, type: motor_power_in, spec: {voltage_v: 400}, required: true}
+      - {name: feedback, type: encoder_out, spec: {protocol: "MOVILINK DDI single-cable"}, required: true}
   - id: X_DRIVE
-    description: "Servo inverter, X axis (SEW MOVI-C class)"
+    description: "SEW MOVIDRIVE modular axis module (size per SEW sizing)"
     category: servo_drive
     qty: 1
-    source: example
+    source: catalog
+    vendor: SEW-EURODRIVE
+    fidelity: {specs: estimate, geometry: estimate}
     specs: {supply_24v_current_a: 0.6}
     ports:
-      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400, current_a: 5.5}}
-      - {name: feedback, type: encoder_in, spec: {protocol: "single-cable digital"}}
+      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400}}
+      - {name: feedback, type: encoder_in, spec: {protocol: "MOVILINK DDI single-cable"}}
       - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}, required: true}
   # ---------------- Z axis (rides on X carriage) ----------------
   - id: Z_MODULE
-    description: "Ball-screw lift module, 50 mm stroke, vertical"
+    description: "Festo EGSL-BS-45-50-10P electric mini slide, ball screw 10 mm pitch, vertical"
     category: linear_module
     qty: 1
-    source: example
+    source: catalog
+    vendor: Festo
+    part_number: "EGSL-BS-45-50-10P"
     moves_with: x_transfer
-    specs: {v_max_mm_s: 1000, a_max_mm_s2: 30000, stroke_mm: 50, payload_max_kg: 5, feed_mm_per_rev: 10,
-            efficiency: 0.9, friction_n: 10, carriage_mass_kg: 0.3, input_inertia_kgcm2: 0.05, orientation: vertical, mass_kg: 1.8}
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://ftp.festo.com/public/PNEUMATIC/SOFTWARE_SERVICE/Documentation/2019/EN/EGSL_EN.PDF", note: "45-10P: max speed 1.0 m/s, max accel 25 m/s2, max driving torque 0.51 Nm", accessed: "2026-11-23"}
+    unverified: [max_drive_torque_nm (2025 catalog edition lists different values), mass_kg, carriage_mass_kg, input_inertia_kgcm2, friction_n, payload_max_kg]
+    specs: {v_max_mm_s: 1000, a_max_mm_s2: 25000, stroke_mm: 50, feed_mm_per_rev: 10, max_drive_torque_nm: 0.51,
+            efficiency: 0.9, friction_n: 10, carriage_mass_kg: 0.4, input_inertia_kgcm2: 0.05, orientation: vertical, mass_kg: 1.3}
     ports:
-      - {name: drive_shaft, type: shaft_in, spec: {diameter_mm: 11}, required: true}
-      - {name: base, type: mount_male, spec: {pattern: "ZX-60"}, required: true}
+      - {name: drive_shaft, type: shaft_in, spec: {}, required: true}
+      - {name: base, type: mount_male, spec: {pattern: "ELGA-80 slide"}, required: true}
+  - id: KIT_Z
+    description: "Axial motor mounting kit, EGSL-45 to SEW CMP40 (Festo EAMM-A or custom adapter)"
+    category: motor_kit
+    qty: 1
+    source: catalog
+    moves_with: x_transfer
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {coupling_inertia_kgcm2: 0.02, mass_kg: 0.2}
+    ports:
+      - {name: motor_side, type: shaft_in, spec: {}, required: true}
+      - {name: axis_side, type: shaft_out, spec: {}, required: true}
   - id: Z_MOTOR
-    description: "Servo motor, Z axis"
+    description: "SEW-EURODRIVE CMP40M synchronous servomotor, speed class 3000"
     category: servo_motor
     qty: 1
-    source: example
+    source: catalog
+    vendor: SEW-EURODRIVE
+    part_number: "CMP40M (options from SEW configurator)"
     moves_with: x_transfer
-    specs: {rated_torque_nm: 0.32, peak_torque_nm: 1.1, max_speed_rpm: 6000, rotor_inertia_kgcm2: 0.18, mass_kg: 0.9}
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://kz.sew-eurodrive.com/products/motors/servomotors/synchronous-servomotors-cmp-highly-dynamic/synchronous-servomotors-cmp-highly-dynamic.html", note: "CMP40M: M0 0.8 Nm, Mpk 3.8 Nm, Jmot 0.15e-4 kgm2", accessed: "2026-11-23"}
+    unverified: [mass_kg, max_speed_rpm, shaft diameter, current_a]
+    specs: {rated_torque_nm: 0.8, peak_torque_nm: 3.8, max_speed_rpm: 3000, rotor_inertia_kgcm2: 0.15, mass_kg: 1.3}
     ports:
-      - {name: shaft, type: shaft_out, spec: {diameter_mm: 11}, required: true}
-      - {name: power, type: motor_power_in, spec: {voltage_v: 400, current_a: 1.1}, required: true}
-      - {name: feedback, type: encoder_out, spec: {protocol: "single-cable digital"}, required: true}
+      - {name: shaft, type: shaft_out, spec: {}, required: true}
+      - {name: power, type: motor_power_in, spec: {voltage_v: 400}, required: true}
+      - {name: feedback, type: encoder_out, spec: {protocol: "resolver or HIPERFACE (per option)"}, required: true}
   - id: Z_DRIVE
-    description: "Servo inverter, Z axis"
+    description: "SEW MOVIDRIVE modular axis module (size per SEW sizing)"
     category: servo_drive
     qty: 1
-    source: example
+    source: catalog
+    vendor: SEW-EURODRIVE
+    fidelity: {specs: estimate, geometry: estimate}
     specs: {supply_24v_current_a: 0.5}
     ports:
-      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400, current_a: 2.0}}
-      - {name: feedback, type: encoder_in, spec: {protocol: "single-cable digital"}}
+      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400}}
+      - {name: feedback, type: encoder_in, spec: {protocol: "resolver or HIPERFACE (per option)"}}
       - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}, required: true}
   # ---------------- end effector (rides on Z) ----------------
   - id: Z_BRACKET
@@ -74,6 +128,7 @@ parts:
     source: custom
     custom_reason: "Offsets plate under the beam centreline; no catalog equivalent"
     moves_with: z_lift
+    fidelity: {specs: estimate, geometry: estimate}
     specs: {mass_kg: 0.4, material: "6061-T6"}
   - id: VAC_PLATE
     description: "Vacuum plate, 140 x 180 mm, perforated, Delrin face"
@@ -82,36 +137,43 @@ parts:
     source: custom
     custom_reason: "Plate pattern matches endsheet format; product-contact face"
     moves_with: z_lift
+    fidelity: {specs: estimate, geometry: estimate}
     specs: {mass_kg: 0.35}
     ports:
       - {name: vac_port, type: vacuum_in, spec: {thread: "G1/8"}, required: true}
+  - id: FITTING_VAC
+    description: "Push-in fitting, G1/8 male to 6 mm tube"
+    category: fitting
+    qty: 1
+    source: catalog
+    moves_with: z_lift
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {mass_kg: 0.01}
+    ports:
+      - {name: tube, type: tube_in, spec: {od_mm: 6}, required: true}
+      - {name: thread, type: vacuum_out, spec: {thread: "G1/8"}, required: true}
   - id: EJECTOR
-    description: "Compact vacuum ejector with blow-off"
+    description: "Schmalz SCPMc 10 compact ejector: NC suction valve, blow-off and vacuum switch integrated, M8 connector"
     category: vacuum_generator
     qty: 1
-    source: example
+    source: catalog
+    vendor: Schmalz
+    part_number: "10.02.02.07194 (SCPMc 10 S04 NC M8-6 1NA E93)"
     moves_with: z_lift
-    specs: {mass_kg: 0.1, air_consumption_nl_min: 95, evacuation_time_ms: 12}
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://media.schmalz.com/MAM_Library/Dokumente/Datenblatt_Artikel/1/100/10020207194/3c15a35c482a_Datasheet_Article_10.02.02.07194_en-EN.pdf", note: "28 l/min suction, 45 l/min air, 84 g, hose D6, 3.5-6 bar", accessed: "2026-11-23"}
+      - {url: "https://pimmedia.schmalz.com/MAM_Library/Dokumente/Datenblatt_Produktfamilie/0_/056/05622/Datasheet_Compact Ejectors SCPMb  SCPMc  SCPMi_en-EN.pdf", note: "evacuation time SCPM 10: 1.00 s/l to 400 mbar", accessed: "2026-11-23"}
+    unverified: [coil_current_a, valve_response_ms, signal_voltage_v]
+    specs: {mass_kg: 0.084, air_consumption_nl_min: 45, suction_nl_min: 28, evac_s_per_l_400mbar: 1.00,
+            valve_response_ms: 5, coil_voltage_v: 24, coil_current_a: 0.05, signal_voltage_v: 24,
+            supply_24v_current_a: 0.08}
     ports:
-      - {name: air_in, type: pneumatic_in, spec: {thread: "G1/8"}, required: true}
-      - {name: vac_out, type: vacuum_out, spec: {thread: "G1/8"}, required: true}
-  - id: VAC_SWITCH
-    description: "Vacuum switch, PNP"
-    category: sensor
-    qty: 1
-    source: example
-    moves_with: z_lift
-    specs: {mass_kg: 0.05, signal_voltage_v: 24, supply_24v_current_a: 0.03}
-  - id: VAC_VALVE
-    description: "3/2 solenoid valve feeding ejector"
-    category: solenoid_valve
-    qty: 1
-    source: example
-    specs: {coil_voltage_v: 24, coil_current_a: 0.1, supply_24v_current_a: 0.1, response_on_ms: 8}
-    ports:
-      - {name: out, type: pneumatic_out, spec: {thread: "G1/8"}, required: true}
+      - {name: air_in, type: tube_in, spec: {od_mm: 6}, required: true}
+      - {name: vac_out, type: tube_out, spec: {od_mm: 6}, required: true}
   # ---------------- glue ----------------
   - id: GLUE_VALVE
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Cold-glue jet valve bar, 190 mm"
     category: glue_valve
     qty: 1
@@ -119,6 +181,7 @@ parts:
     specs: {coil_voltage_v: 24, coil_current_a: 0.35, supply_24v_current_a: 0.35, response_on_ms: 1.2,
             response_off_ms: 2.0, max_frequency_hz: 150}
   - id: GLUE_UNIT
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Glue supply unit with ready signal"
     category: glue_supply
     qty: 1
@@ -126,36 +189,42 @@ parts:
     specs: {signal_voltage_v: 24, air_consumption_nl_min_continuous: 20}
   # ---------------- sensors / operator / safety ----------------
   - id: DOUBLE_SENSOR
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Ultrasonic double-sheet sensor"
     category: sensor
     qty: 1
     source: example
     specs: {signal_voltage_v: 24, supply_24v_current_a: 0.08}
   - id: AIR_SWITCH
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Pressure switch, main air"
     category: sensor
     qty: 1
     source: example
     specs: {signal_voltage_v: 24, supply_24v_current_a: 0.02}
   - id: GUARD_SWITCH
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Interlocked guard switch, safety-rated"
     category: safety_device
     qty: 1
     source: example
     specs: {signal_voltage_v: 24, safety_rated: true}
   - id: ESTOP
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Emergency stop pushbutton, safety-rated"
     category: safety_device
     qty: 1
     source: example
     specs: {signal_voltage_v: 24, safety_rated: true}
   - id: OP_PANEL
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Start / stop / reset pushbuttons"
     category: operator_device
     qty: 1
     source: example
     specs: {signal_voltage_v: 24}
   - id: LAMP_FAULT
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Fault lamp 24 VDC LED"
     category: indicator
     qty: 1
@@ -163,6 +232,7 @@ parts:
     specs: {coil_voltage_v: 24, coil_current_a: 0.02, supply_24v_current_a: 0.02}
   # ---------------- control cabinet ----------------
   - id: PLC
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Motion controller (MOVI-C CONTROLLER class), EtherCAT master"
     category: controller
     qty: 1
@@ -171,24 +241,28 @@ parts:
     ports:
       - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}}
   - id: DI1
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Digital input card, 8 ch, 24 VDC"
     category: io_card
     qty: 1
     source: example
     specs: {io_type: DI, channels: 8, voltage_v: 24, supply_24v_current_a: 0.1}
   - id: DO1
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Digital output card, 8 ch, 24 VDC, 0.5 A/ch"
     category: io_card
     qty: 1
     source: example
     specs: {io_type: DO, channels: 8, voltage_v: 24, current_per_channel_a: 0.5, supply_24v_current_a: 0.1}
   - id: SDI1
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Safety input module, 4 ch, 24 VDC"
     category: io_card
     qty: 1
     source: example
     specs: {io_type: SDI, channels: 4, voltage_v: 24, safety_rated: true, supply_24v_current_a: 0.1}
   - id: PSU_24V
+    fidelity: {specs: estimate, geometry: estimate}
     description: "24 VDC power supply, 10 A"
     category: power_supply
     qty: 1
@@ -199,9 +273,13 @@ parts:
     category: pneumatic
     qty: 1
     source: example
+    fidelity: {specs: estimate, geometry: estimate}
     specs: {flow_nl_min: 600}
+    ports:
+      - {name: out, type: tube_out, spec: {od_mm: 6}}
   # ---------------- structure (geometry references) ----------------
   - id: STACK_FENCE
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Stack front lay / fence"
     category: machined_part
     qty: 1
@@ -209,37 +287,44 @@ parts:
     custom_reason: "Format-specific lay"
     specs: {material: "6061-T6"}
   - id: SIDE_GUIDE
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Stack side guide"
     category: machined_part
     qty: 2
     source: custom
     custom_reason: "Format-specific"
   - id: BACKSTOP
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Signature registration backstop"
     category: machined_part
     qty: 1
     source: custom
     custom_reason: "Registration datum for placement"
   - id: UPRIGHT
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Aluminium profile upright, beam support"
     category: profile
     qty: 2
     source: example
   - id: TABLE
+    fidelity: {specs: estimate, geometry: estimate}
     description: "Machine table plate"
     category: plate
     qty: 1
     source: example
 
 connections:
-  - [X_MOTOR.shaft, X_MODULE.drive_shaft]
+  - [X_MOTOR.shaft, KIT_X.motor_side]
+  - [KIT_X.axis_side, X_MODULE.drive_shaft]
   - [X_DRIVE.motor_power, X_MOTOR.power]
   - [X_MOTOR.feedback, X_DRIVE.feedback]
   - [X_DRIVE.bus, PLC.bus]
-  - [Z_MOTOR.shaft, Z_MODULE.drive_shaft]
+  - [Z_MOTOR.shaft, KIT_Z.motor_side]
+  - [KIT_Z.axis_side, Z_MODULE.drive_shaft]
   - [Z_DRIVE.motor_power, Z_MOTOR.power]
   - [Z_MOTOR.feedback, Z_DRIVE.feedback]
   - [Z_DRIVE.bus, PLC.bus]
   - [Z_MODULE.base, X_MODULE.carriage]
-  - [VAC_VALVE.out, EJECTOR.air_in]
-  - [EJECTOR.vac_out, VAC_PLATE.vac_port]
+  - [AIR_PREP.out, EJECTOR.air_in]
+  - [EJECTOR.vac_out, FITTING_VAC.tube]
+  - [FITTING_VAC.thread, VAC_PLATE.vac_port]

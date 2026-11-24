@@ -72,3 +72,12 @@ tests:
     equipment: [kinematic mock-up, 240 fps camera, mm grid backdrop]
     est_cost_usd: 0
     status: planned
+  - id: PT-10
+    title: "Bench axis: real X drive train running the generated cam"
+    purpose: "Unit test of one real axis before integration: following error, motor current vs. BOM-SIZING prediction, belt behaviour. Parts are reused in the machine."
+    method: "ELGA-TB-G-80 + CM3C63L + MOVIDRIVE axis module + MOVI-C controller on a bench frame with a dummy payload equal to the predicted moving mass. Run the X cam table at 1500/2400/3000 cph; log following error and torque via MOVISUITE scope; export CSV into tests/data/."
+    equipment: [X axis drive train from the BOM, MOVI-C controller, dummy payload]
+    est_cost_usd: 0
+    acceptance: "following error at place < 0.1 mm; peak/RMS torque within 15% of BOM-SIZING prediction"
+    holdout: true
+    status: planned

@@ -40,9 +40,12 @@ Assistant, or eDrawings Viewer (Windows). You only need one.
   You import and commission. MOVISUITE exports go back into git.
 - Confirm with SEW which file import/export formats your MOVISUITE version supports for cam tables
   and parameter sets. That determines how automated the handoff is.
-- As far as the framework authors know, the MOVI-C controller's IEC editor is CODESYS-based. If so,
-  sequencing/interlock code can be tested in a CODESYS soft-PLC first, with simulated axes
-  that follow the cam tables exactly.
+- The MOVI-C controller is programmed in the **CODESYS-based MOVIRUN open Editor** (SEW's IEC editor,
+  opened from MOVISUITE), which also tests the program in simulation or on real hardware. CODESYS is not
+  an alternative to MOVI-C; it is the engine inside it. So installing MOVISUITE gets you the real compiler
+  and simulator for the exact controller. The framework's ST transpiler is the fast pre-check that runs
+  on every commit; the MOVIRUN editor is the authoritative check before commissioning.
+- MOVIKIT motion modules (camming, gearing...) are used from IEC code through PLCopen-style interfaces.
 - Data from existing machines: MOVISUITE scope/diagnostic exports (CSV) are good calibration data.
   Commit them under `tests/data/` and reference them from `tests.yaml`.
 - Possible, but not the default: Claude driving the MOVISUITE GUI through computer use on a Windows

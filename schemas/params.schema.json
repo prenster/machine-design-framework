@@ -47,6 +47,9 @@
           "from_part": {
             "type": "string",
             "description": "PART_ID.spec_key in bom.yaml this value must equal"
+          },
+          "url": {
+            "type": "string"
           }
         },
         "allOf": [
