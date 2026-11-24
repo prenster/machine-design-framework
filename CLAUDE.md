@@ -13,7 +13,8 @@ Then read `docs/PHILOSOPHY.md` once per session.
 3. Read the station/machine project you are working on: `requirements.yaml`, `cycle.yaml`,
    `layout.yaml`, `params.yaml`, `tests.yaml`, and where present `bom.yaml`, `io_list.yaml`,
    `constraints.yaml`, `assembly3d.yaml` + `cad/`, `sil.yaml` + `plc/`.
-4. Run `make verify P=<project dir>` to see the current state before changing anything.
+4. Run `python mdf.py verify <project dir>` (or `make verify P=...`) to see the current state before changing
+   anything. Use `python mdf.py ...` on Windows; it works everywhere.
 
 ## 2. Non-negotiable rules
 

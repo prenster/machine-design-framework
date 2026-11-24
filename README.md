@@ -27,16 +27,19 @@ Read [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) for the reasoning.
 
 ## Quick start
 
-```bash
-pip install -r requirements.txt
-make test           # unit tests of the framework mechanics
-make verify          # example station across all product variants
-make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
-make hooks           # once per clone: install the claim-contract pre-commit hook
-make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
-make lock P=<dir> BY="<name>"   # chief engineer only, after reading <dir>/CHECKS.md
-PYTHONPATH=tools python3 -m mdf verify <dir> --gate G3   # enforce what detailed design requires
+Works the same on Windows (PowerShell), macOS and Linux. Needs Python 3.11+ and git.
+
 ```
+git clone https://github.com/prenster/machine-design-framework
+cd machine-design-framework
+python mdf.py install          # one time: Python packages (CAD kernel, collision, parser...)
+python mdf.py hooks            # one time: claim-contract git hook
+python mdf.py all              # unit tests + example (all variants) + broken example must fail
+python mdf.py help             # every command
+```
+
+Then open the folder in Claude Code; it reads `CLAUDE.md` and works by the same rules.
+(`make` targets exist too, for Linux/macOS/WSL.)
 
 Output: a console verdict, `build/report.md` (checks, traceability, assumption audit), `build/side_view.svg`,
 `build/station_3d.png`, and `build/station.step` / `station.glb` (open in any STEP viewer).

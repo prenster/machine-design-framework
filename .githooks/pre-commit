@@ -1,10 +1,12 @@
 #!/bin/sh
 # MDF claim contract: no commit unless every touched project was verified on its current inputs.
-# Install once per clone:  make hooks
+# Install once per clone:  python mdf.py hooks   (or: make hooks). Works in Git for Windows' shell too.
 projects=$(git diff --cached --name-only | grep -E '^(examples|machines)/' | awk -F/ '{print $1"/"$2}' | sort -u)
 [ -z "$projects" ] && exit 0
 existing=""
 for p in $projects; do [ -d "$p" ] && existing="$existing $p"; done
 [ -z "$existing" ] && exit 0
-PYTHONPATH=tools python3 -m mdf claimcheck $existing || {
+PY=$(command -v python3 || command -v python || command -v py)
+[ -z "$PY" ] && { echo "MDF hook: no Python found on PATH"; exit 1; }
+"$PY" mdf.py claimcheck $existing || {
   echo "Commit refused by the MDF claim contract (see docs/PRIOR_ART.md)."; exit 1; }
