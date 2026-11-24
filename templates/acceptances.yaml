@@ -1,0 +1,8 @@
+# Copy into a station project as acceptances.yaml. Written by the chief engineer, never by Claude.
+# Only WARN results can be accepted; FAIL results must be fixed. Changing this file changes the check lock.
+accepted:
+  - check: STK-REGISTRATION        # check id from the report
+    by: "<your name> (chief engineer)"
+    date: "YYYY-MM-DD"
+    reason: "<why the WARN is acceptable>"
+    conditions: "<what must be re-checked, and when>"

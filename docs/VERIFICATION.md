@@ -38,12 +38,15 @@ is making the checks cover what matters, and being honest about what they don't.
 | Integrity | **CAD-ASSERT** | Kernel-measured bounding box, volume and position of declared bodies (silent-failure screen) | build123d kernel |
 | | **CHECK-LOCK** | No check definition changed without the chief engineer's approval | hashes |
 | | claim contract | Pre-commit hook refuses commits whose last verify is stale or FAIL | hashes |
+| Line | **LINE-ICD** | Host-machine signals wired, used by the PLC, valid before they are sampled at every speed (incl. latency) | timing budget |
+| Formats | variants | Every check above runs for every product variant (smallest / nominal / largest) | expressions in YAML |
+| Decisions | acceptances | A chief-engineer acceptance turns a specific WARN into ACCEPTED; FAILs cannot be accepted | recorded, locked |
 | Trace | traceability / assumption audit | Every requirement has a check, test or review; every PASS lists the unmeasured numbers it depends on | report |
 
 ## Demonstration
 
 `examples/pick-glue-place` has no FAIL (WARN where values are still unverified; physical tests pending).
-`examples/pick-glue-place-broken` contains **22 planted faults** (see its `FAULTS.md`) across timing, flexible
+`examples/pick-glue-place-broken` contains **23 planted faults** (see its `FAULTS.md`) across timing, flexible
 sheet, 3D, BOM/electrical, PLC, cams, actuation policy, tolerance stacks, safety, FMEA, CAD geometry and a
 check weakened after approval. Every one is caught and named. CI runs both on every push.
 

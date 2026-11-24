@@ -1,4 +1,4 @@
-(* GENERATED from io_list.yaml - DO NOT EDIT. source-hash: 9092f7363cdec866 *)
+(* GENERATED from io_list.yaml - DO NOT EDIT. source-hash: 26192efeb7bd817a *)
 VAR_GLOBAL
     rAngle : REAL;   (* in  virtual *)
     xMasterRun : BOOL;   (* out  virtual *)
@@ -9,9 +9,11 @@ VAR_GLOBAL
     xDoubleSheet : BOOL;   (* in  DI1.1 DOUBLE_SENSOR *)
     xAirOk : BOOL;   (* in  DI1.2 AIR_SWITCH *)
     xGlueReady : BOOL;   (* in  DI1.3 GLUE_UNIT *)
+    xBeadOk : BOOL;   (* in  DI1.7 BEAD_SENSOR *)
     xStartPb : BOOL;   (* in  DI1.4 OP_PANEL *)
     xStopPb : BOOL;   (* in  DI1.5 OP_PANEL *)
     xResetPb : BOOL;   (* in  DI1.6 OP_PANEL *)
+    xHostBookPresent : BOOL;   (* in  DI2.0 BINDER_HANDSHAKE *)
     xGuardClosed : BOOL;   (* in  SDI1.0 GUARD_SWITCH *)
     xEStopOk : BOOL;   (* in  SDI1.1 ESTOP *)
 END_VAR

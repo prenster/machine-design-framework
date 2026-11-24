@@ -5,7 +5,7 @@
 
    States:  0 IDLE   1 RUN   2 STOPPING (finish cycle, park)   9 FAULT
    Faults:  1 guard open  2 e-stop  3 air loss  4 repeated pick failure  5 double sheet  6 glue unit not ready
-            7 drive / motion error (from FB_Axis, any target)
+            7 drive / motion error (from FB_Axis, any target)  8 glue bead missing
 
    Safety: guard and e-stop are safety functions on the safety controller (STO/SS1 on the drives,
    safe output for valves as the risk assessment requires). This program mirrors them only for
@@ -23,6 +23,7 @@ VAR
     xNewCycle   : BOOL;
     xSheetOk    : BOOL;      (* vacuum confirmed for this cycle's sheet *)
     xSkipGlue   : BOOL;      (* no glue this cycle (missing / double sheet) *)
+    xSkipPick   : BOOL;      (* host reported a gap: do not pick this cycle *)
     iMissCount  : INT := 0;
     iCycles     : DINT := 0;
     rtStart     : R_TRIG;
@@ -90,9 +91,16 @@ CASE iState OF
         iFaultCode := 6;
     END_IF;
 
+    (* line integration: binder says the receiving clamp is empty -> skip this pick (not a fault) *)
+    IF Crossed(rPrev, rAngle, HOST_BOOK_CHECK) THEN
+        xSkipPick := NOT xHostBookPresent;
+    END_IF;
+
     (* pick confirmation: vacuum switch must be made before Z lifts *)
     IF Crossed(rPrev, rAngle, VAC_OK_CHECK) THEN
-        IF xVacOk THEN
+        IF xSkipPick THEN
+            xSkipGlue := TRUE;          (* intended skip: no miss counted *)
+        ELSIF xVacOk THEN
             xSheetOk := TRUE;
             iMissCount := 0;
         ELSE
@@ -112,9 +120,19 @@ CASE iState OF
         iFaultCode := 5;
     END_IF;
 
+    (* bead check: a sheet that should have glue but doesn't is held, never placed *)
+    IF Crossed(rPrev, rAngle, BEAD_OK_CHECK) AND xSheetOk AND NOT xSkipGlue AND NOT xBeadOk THEN
+        iState := 9;
+        iFaultCode := 8;
+    END_IF;
+
     IF iState <> 9 THEN
-        xVacuum := InWindow(rAngle, VACUUM_ON, VACUUM_OFF);
+        xVacuum := InWindow(rAngle, VACUUM_ON, VACUUM_OFF) AND NOT xSkipPick;
         xGlueGun := InWindow(rAngle, GLUE_GUN_ON, GLUE_GUN_OFF) AND xSheetOk AND NOT xSkipGlue AND xGlueReady;
+    END_IF;
+
+    IF Crossed(rPrev, rAngle, VACUUM_OFF) THEN
+        xSkipPick := FALSE;
     END_IF;
 
     IF iState = 2 AND Crossed(rPrev, rAngle, PARK_ANGLE) THEN

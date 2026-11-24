@@ -24,6 +24,15 @@ ranges and the condition they apply under.
 - [ ] Environment: temperature, humidity range, dust, adhesive vapour
 - [ ] Networking / data: MES, counters, remote access policy (air-gapped?)
 
+## Line integration (if the machine serves a host: binder, casing-in, trimmer)
+- [ ] Host machine make/model/year; who the vendor contact is; is a machine-to-machine interface documented?
+- [ ] Who is the master; host encoder available? (resolution, phase reference)
+- [ ] Signals from the host: gap/clamp-occupied, ready, stop, fault, per-product data (thickness, spine, position); when each is valid and its latency
+- [ ] Signals to the host: ready, fault, reject/skip request
+- [ ] Per-product variation: which dimensions vary per product, their full range, and how the host measures them
+- [ ] Mounting/space at the host, product hand-off geometry and tolerance at the hand-off point
+- [ ] Combined safety: shared e-stop, guarding at the interface, who certifies the combination
+
 ## Machine preferences and constraints
 - [ ] Actuation preference (default: mechanical cam > servo > pneumatic) and any exceptions
 - [ ] Controller platform (e.g. SEW MOVI-C), HMI, preferred vendors, spares already stocked

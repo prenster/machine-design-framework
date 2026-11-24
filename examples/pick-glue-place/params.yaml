@@ -1,6 +1,13 @@
 # Every number the design depends on, and where it came from.
 # source: assumed  ->  MUST name the physical test (tests.yaml) that will replace it.
+# Product variants (formats). Every check runs for every variant. Values override params below.
+variants:
+  small:   {sheet_length_mm: 120}
+  nominal: {sheet_length_mm: 150}
+  large:   {sheet_length_mm: 180}
+
 params:
+  sheet_length_mm: {value: 150, unit: mm, source: requirement, note: "endsheet dimension along X (format); see variants"}
   speed_min_cph: {value: 1500, unit: cycles/h, source: requirement}
   speed_nom_cph: {value: 2400, unit: cycles/h, source: requirement}
   speed_max_cph: {value: 3000, unit: cycles/h, source: requirement}
@@ -24,6 +31,7 @@ params:
   x_following_error_mm:  {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-10, note: "servo following error at place, 3 sigma"}
   plate_registration_mm: {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-11, note: "sheet trailing edge against the plate edge stop (replaces stack-fence registration, +/-0.2)"}
   sheet_shift_mm:        {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-05, note: "sheet movement on the plate below the slip limit"}
+  bead_min_length_mm:    {value: 2.0, unit: mm, source: requirement, note: "shortest bead the sensor must accept as present"}
   sheet_thickness_mm: {value: 0.15, unit: mm, source: measured, note: "caliper, 10 sheets, both stocks"}
 
   # --- flexible sheet (SHEET-DYN). Per unit width. ---

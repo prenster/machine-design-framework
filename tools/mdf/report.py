@@ -9,7 +9,7 @@ from shapely.geometry import Polygon
 from .checks import FAIL, PASS, WARN, CheckResult, World
 from .project import Project
 
-RANK = {PASS: 0, "REVIEW": 1, "PENDING": 1, WARN: 2, FAIL: 3}
+RANK = {PASS: 0, "ACCEPTED": 0, "REVIEW": 1, "PENDING": 1, WARN: 2, FAIL: 3}
 
 
 def traceability(proj: Project, results: list[CheckResult]) -> list[dict]:

@@ -12,8 +12,10 @@ signals:
   - {tag: xDoubleSheet, dir: in,  type: BOOL, device: DOUBLE_SENSOR, card: DI1, ch: 1}
   - {tag: xAirOk,       dir: in,  type: BOOL, device: AIR_SWITCH,    card: DI1, ch: 2}
   - {tag: xGlueReady,   dir: in,  type: BOOL, device: GLUE_UNIT,     card: DI1, ch: 3}
+  - {tag: xBeadOk,      dir: in,  type: BOOL, device: BEAD_SENSOR,   card: DI1, ch: 7, note: "bead present on the gripped sheet"}
   - {tag: xStartPb,     dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 4}
   - {tag: xStopPb,      dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 5}
   - {tag: xResetPb,     dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 6}
+  - {tag: xHostBookPresent, dir: in, type: BOOL, device: BINDER_HANDSHAKE, card: DI2, ch: 0, note: "from the binder; see interfaces.yaml"}
   - {tag: xGuardClosed, dir: in,  type: BOOL, device: GUARD_SWITCH,  card: SDI1, ch: 0}
   - {tag: xEStopOk,     dir: in,  type: BOOL, device: ESTOP,         card: SDI1, ch: 1}

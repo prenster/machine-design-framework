@@ -77,6 +77,8 @@ park_angle: 355
 sensors:
   vac_ok:       {check_at: 26, signal: xVacOk,       note: "vacuum confirmed before Z lifts at 30 deg"}
   double_sheet: {check_at: 75, signal: xDoubleSheet, note: "sensor reads the gripped sheet after lift, before glue"}
+  host_book:    {check_at: 5,   signal: xHostBookPresent, note: "decide before VACUUM_ON (10 deg) whether to pick"}
+  bead_ok:      {check_at: 148, signal: xBeadOk,      note: "bead passes the sensor at x=345 near the end of the glue pass, before Z lifts"}
 
 valves:
   vacuum:

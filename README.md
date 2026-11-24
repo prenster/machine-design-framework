@@ -33,7 +33,7 @@ make verify          # example station: PASS (physical tests still pending)
 make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
 make hooks           # once per clone: install the claim-contract pre-commit hook
 make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
-make lock P=<dir>    # chief engineer only: approve the current check definitions
+make lock P=<dir> BY="<name>"   # chief engineer only, after reading <dir>/CHECKS.md
 PYTHONPATH=tools python3 -m mdf verify <dir> --gate G3   # enforce what detailed design requires
 ```
 
@@ -62,6 +62,9 @@ signature. Carrier and sheet at pick (blue), glue (orange) and place (green); da
 | Cams | Mechanical plate cams designed from the same motion law: pressure angle, undercut, Hertz, follower jump, roller life, camshaft torque; DXF/STEP export |
 | Tolerances | Worst case, RSS and Monte Carlo stack-ups with the biggest contributors ranked |
 | Safety / reliability | ISO 13849-1 risk graph bookkeeping, safety functions validated by SIL scenarios; FMEA with action thresholds |
+| Formats | Every check runs for every product variant (smallest / nominal / largest) via parameter expressions |
+| Line integration | Host-machine interface (ICD) with timing budget at every speed; gap/fault handshakes tested in SIL |
+| Decisions | Readable check definitions (`CHECKS.md`); lock records who approved; chief-engineer acceptances of specific warnings |
 | Integrity | Claim contract (no commit on stale or failed verify), check lock (no silent weakening of checks), CAD kernel assertions |
 | Fidelity | Every part/number marked estimate → datasheet → vendor STEP → measured, with sources; unknowns reported as NOT VERIFIED; a ranked **human action queue** (download, look up, test, review, quote) on every run |
 
@@ -85,6 +88,7 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | [`docs/PRIOR_ART.md`](docs/PRIOR_ART.md) | What others tried, how AI design fails, and the countermeasures here |
 | [`docs/ACTUATION.md`](docs/ACTUATION.md) | Cam > servo > pneumatic: why, and where to push back |
 | [`templates/SPEC_CHECKLIST.md`](templates/SPEC_CHECKLIST.md) | Spec intake checklist (start here for a new machine) |
+| [`docs/LINE_INTEGRATION.md`](docs/LINE_INTEGRATION.md) | Stations that serve a host machine (binder): sync, ICD, per-product data |
 | [`docs/FIDELITY.md`](docs/FIDELITY.md) | Fidelity ladder, human action queue, gate enforcement |
 | [`docs/ANALOGY.md`](docs/ANALOGY.md) | Where the software analogy holds and where it breaks |
 | [`docs/PHYSICAL_TESTS.md`](docs/PHYSICAL_TESTS.md) | Cheap real-world tests, calibration loop |

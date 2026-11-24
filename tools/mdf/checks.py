@@ -407,6 +407,8 @@ def run_all(proj: Project) -> list[CheckResult]:
     out.extend(check_actuation(proj))
     from .stacks import run_stacks
     out.extend(run_stacks(proj))
+    from .line import check_line
+    out.extend(check_line(proj))
     out.extend(run_bom(proj))
     out.extend(run_sil(proj))
     from .safety import check_safety, check_fmea
@@ -415,4 +417,25 @@ def run_all(proj: Project) -> list[CheckResult]:
     out.extend(check_fmea(proj, known))
     from .integrity import check_lock
     out.extend(check_lock(proj))
+    _apply_acceptances(proj, out)
     return out
+
+
+def _apply_acceptances(proj, results):
+    """A chief-engineer acceptance (acceptances.yaml, written by the human) turns a specific WARN into
+    ACCEPTED. A FAIL can never be accepted. Acceptances are part of the check lock."""
+    acc = proj.data.get("acceptances", {}).get("accepted", [])
+    for a in acc:
+        hit = False
+        for r in results:
+            if r.check_id == a["check"] and (a.get("speed") in (None, r.speed)):
+                hit = True
+                if r.status == WARN:
+                    r.status = "ACCEPTED"
+                    r.details.insert(0, f"ACCEPTED by {a['by']} on {a['date']}: {a['reason']}"
+                                        + (f" Conditions: {a['conditions']}" if a.get("conditions") else ""))
+                elif r.status == FAIL:
+                    r.details.insert(0, f"acceptance by {a['by']} exists but this result FAILS: acceptances cover WARN only")
+        if not hit:
+            results.append(CheckResult("ACCEPTANCE", WARN, f"acceptance for {a['check']} matches no result",
+                                       ["stale acceptance: remove it or fix the check id"]))

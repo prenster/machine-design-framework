@@ -81,6 +81,21 @@ tests:
     est_cost_usd: 0
     acceptance: "following error at place < 0.1 mm; peak/RMS torque within 15% of BOM-SIZING prediction (holdout for BOM-SIZING)"
     status: planned
+  - id: PT-12
+    title: "Bead sensor detection reliability"
+    purpose: "Verifies REQ-PROC-009 on production stock and adhesive."
+    method: "Sensor on the glue-pass mock-up: 500 good beads, 100 thin, 100 missing, at min/max speed. Count misses and false alarms."
+    equipment: [glue-pass mock-up, candidate sensors]
+    est_cost_usd: 300
+    acceptance: "0 missed of 100 missing; < 0.5% false alarms"
+    status: planned
+  - id: PT-13
+    title: "Binder interface timing"
+    purpose: "Confirms when the binder's clamp-occupied signal becomes valid and its latency (IF-BOOK-PRESENT)."
+    method: "With the binder running empty and with books: log the binder encoder and the handshake output on a USB logic analyzer at three speeds; get the vendor ICD in parallel."
+    equipment: [USB logic analyzer, binder access]
+    est_cost_usd: 0
+    status: planned
   - id: PT-11
     title: "Sheet registration against the plate edge stop"
     purpose: "Calibrates plate_registration_mm, the largest contributor to STK-REGISTRATION."

@@ -1,15 +1,547 @@
-_note: Hashes of everything that defines what the checks demand. Regenerate ONLY after
-  the chief engineer approves a change to a check (`make lock P=...`), and say so
-  in the commit.
+_note: Everything that defines what the checks demand. Approval = the chief engineer runs `make lock P=... BY="name"`
+  after reading CHECKS.md. A lock without approved_by is an unreviewed baseline.
+approved_by: null
+approved_utc: null
 sections:
-  cad.expectations: 81126e2115c99755
+  acceptances: 74234e98afe7498f
+  cad.expectations: 1d6e21e2141eab09
   cam.limits: 691528175571f257
   constraints: 633cf7e42d1f2905
+  interfaces.timing: c175e6d142ea06a7
   layout.clearance: 9e556783b46d865c
   layout.glue.spec: 5f9dffbc71441314
   layout.ports: 102ddbaa5fe87bd8
-  params.requirement: 1a4b9f3dba18ab8d
-  requirements: d6d284251e65c75b
+  params.requirement: 97e6e72b806deb2a
+  requirements: 7972139851fe0b85
   safety.plr: 426c0af34653270b
-  sil.expectations: 65223aee9dd7dbeb
+  sil.expectations: 2c43e20926bcab15
   stacks.targets: 63d0cee0db58ace5
+  variants: 85406069618a93df
+values:
+  acceptances: null
+  cad.expectations:
+  - expect:
+      bbox_mm:
+      - 50
+      - 40
+      - 115
+      volume_mm3: 230000
+    id: z_module
+  - expect:
+      bbox_mm:
+      - 50
+      - 95
+      - 8
+      volume_mm3: 38000
+    id: z_bracket
+  - expect:
+      bbox_mm:
+      - =sheet_length_mm - 10
+      - 180
+      - 11.85
+      min_z_mm: 0.15
+      volume_mm3: =(sheet_length_mm - 10) * 180 * 11.85
+    id: vacuum_plate
+  cam.limits:
+    jogger:
+      curvature_ratio_min: 2.0
+      jump_margin_n: 10
+      pressure_angle_deg: 30
+      roller_life_h: 20000
+  constraints:
+  - expr: budget.air_nl_min <= part.AIR_PREP.flow_nl_min * 0.7
+    id: C-AIR-BUDGET
+    text: Compressed-air demand at max speed within 70% of the air-prep unit's flow
+  - expr: budget.current_24v_a <= part.PSU_24V.output_current_a * 0.75
+    id: C-24V-BUDGET
+    text: 24 VDC load within 75% of the power supply
+  - expr: cycles_per_s_max <= part.GLUE_VALVE.max_frequency_hz
+    id: C-GLUE-FREQ
+    text: Glue valve can cycle at max machine speed
+  - expr: param.glue_on_delay_ms >= part.GLUE_VALVE.response_on_ms
+    fail_message: the simulation is using a faster valve than the one in the BOM
+    id: C-GLUE-ASSUME-ON
+    text: Assumed glue on-delay is not more optimistic than the datasheet
+  - expr: param.glue_off_delay_ms >= part.GLUE_VALVE.response_off_ms
+    id: C-GLUE-ASSUME-OFF
+    text: Assumed glue off-delay is not more optimistic than the datasheet
+  - expr: param.vac_on_delay_ms >= part.EJECTOR.valve_response_ms + part.EJECTOR.evac_s_per_l_400mbar * param.vac_volume_l
+      * 1000
+    fail_message: vacuum assumed to build faster than the BOM parts can deliver
+    id: C-VAC-ASSUME
+    text: Assumed vacuum build time covers valve response plus ejector evacuation time
+  - expr: axis.z_lift.moving_mass_kg * 9.81 * part.Z_MODULE.feed_mm_per_rev / 1000 / 6.2832 / part.Z_MODULE.efficiency
+      <= part.Z_MOTOR.rated_torque_nm * 0.5
+    id: C-Z-HOLD
+    text: Z motor holds the vertical load continuously (gravity) within rated torque
+  - expr: axis.x_transfer.force_peak_n <= part.X_MODULE.max_feed_force_n
+    id: C-X-FEED-FORCE
+    text: X peak belt force within the axis feed-force rating
+  - expr: param.z_torque_limit_nm <= part.Z_MODULE.max_drive_torque_nm
+    fail_message: set the inverter torque limit below the slide rating or the motor can damage the ball screw
+    id: C-Z-TORQUE-LIMIT
+    text: Z inverter torque limit protects the slide (motor peak torque exceeds the slide's max drive torque)
+  - expr: axis.z_lift.torque_peak_nm * param.sizing_torque_margin <= param.z_torque_limit_nm
+    id: C-Z-TORQUE-HEADROOM
+    text: Z motion needs less than the inverter torque limit (with sizing margin)
+  interfaces.timing:
+  - available_at_deg: 330
+    id: IF-BOOK-PRESENT
+    latency_ms: 15
+    needed_by_deg: null
+  layout.clearance:
+    default_min_mm: 2.0
+    guided_pairs:
+    - - carriage
+      - beam
+    - - z_slide
+      - z_module
+    rules:
+    - between:
+      - endsheet
+      - stack
+      min_mm: 0.0
+      why: sheet sits on stack until lifted
+      window:
+      - 0
+      - 75
+    - between:
+      - vacuum_plate
+      - stack
+      min_mm: 0.1
+      why: plate lands on top sheet at pick
+      window:
+      - 330
+      - 75
+    - between:
+      - endsheet
+      - stack_fence
+      min_mm: 1.0
+      why: fence is the side lay; sheet registers 2 mm off it
+      window:
+      - 0
+      - 75
+    - between:
+      - endsheet
+      - nozzle_body
+      min_mm: 0.5
+      why: designed 1.0 mm glue gap
+      window:
+      - 100
+      - 160
+    - between:
+      - vacuum_plate
+      - nozzle_body
+      min_mm: 0.5
+      why: plate passes over nozzle during glue pass
+      window:
+      - 100
+      - 160
+    - between:
+      - endsheet
+      - signature
+      min_mm: 0.0
+      why: placement contact
+      window:
+      - 200
+      - 245
+    - between:
+      - endsheet
+      - signature_backstop
+      min_mm: 1.0
+      why: sheet registers 2 mm off backstop
+      window:
+      - 185
+      - 250
+    - between:
+      - vacuum_plate
+      - signature
+      min_mm: 0.1
+      why: plate presses sheet onto signature
+      window:
+      - 200
+      - 265
+    - between:
+      - vacuum_plate
+      - endsheet_placed
+      min_mm: 0.0
+      why: plate on placed sheet during press
+      window:
+      - 215
+      - 270
+    - between:
+      - endsheet
+      - side_guide_l
+      min_mm: 0.5
+      why: 'side lays: sheet registers 1 mm off each guide'
+      window:
+      - 0
+      - 75
+    - between:
+      - endsheet
+      - side_guide_r
+      min_mm: 0.5
+      why: side lays
+      window:
+      - 0
+      - 75
+    step_deg: 0.25
+  layout.glue.spec:
+    bead:
+      end_mm: 7.0
+      start_mm: 3.0
+      tol_mm: 1.0
+    gap:
+      max_mm: 1.5
+      min_mm: 0.5
+  layout.ports:
+    max_speed_at_port_mm_s: 5
+    pick:
+      tol_x: 0.3
+      tol_z: 0.05
+      x: 0
+      z: 0
+    place:
+      tol_x: 0.3
+      tol_z: 0.05
+      x: 600
+      z: 0
+  params.requirement:
+    bead_min_length_mm: 2.0
+    plc_scan_ms: 1.0
+    sheet_length_mm: 150
+    sheet_max_deflection_mm: 2.0
+    sizing_torque_margin: 1.25
+    speed_max_cph: 3000
+    speed_min_cph: 1500
+    speed_nom_cph: 2400
+    z_torque_limit_nm: 0.5
+  requirements:
+  - id: REQ-PROC-001
+    text: Place the endsheet with its trailing edge within +/-0.3 mm of the signature registration point.
+    verification:
+      method: check
+      ref:
+      - PROD-PLACE
+      - STK-REGISTRATION
+  - id: REQ-PROC-002
+    text: Glue bead 3-7 mm from the trailing edge (+/-1 mm) at every production speed; no glue on the machine.
+    verification:
+      method: check
+      ref: GLUE-BEAD
+  - id: REQ-PROC-003
+    text: Nozzle-to-sheet gap 0.5-1.5 mm during the glue shot.
+    verification:
+      method: check
+      ref: GLUE-BEAD
+  - id: REQ-PROC-004
+    text: Pick exactly one sheet; vacuum established before the carrier leaves the stack.
+    verification:
+      method: check
+      ref: PROD-PICK
+  - id: REQ-PROC-005
+    text: Double-sheet pick rate below 1 in 2,000 on both production endsheet stocks.
+    verification:
+      method: test
+      ref: PT-06
+  - id: REQ-PROC-006
+    text: Sheet does not shift on the vacuum plate during transfer.
+    verification:
+      method: check
+      ref: PROD-CARRY
+  - id: REQ-PROC-008
+    text: Every glued endsheet is checked for bead presence before placement; a missing or short bead stops the
+      machine holding the sheet, so no unglued endsheet is ever placed.
+    verification:
+      method: check
+      ref:
+      - SIL-GLUE-MISSING
+  - id: REQ-PROC-009
+    text: Bead sensor detects 100% of missing beads and < 0.5% false alarms on production stock and adhesive.
+    verification:
+      method: test
+      ref: PT-12
+  - id: REQ-LINE-001
+    text: 'When the binder reports an empty clamp, the station skips that cycle: no pick, no glue, no placed endsheet,
+      no fault.'
+    verification:
+      method: check
+      ref:
+      - SIL-HOST-GAP
+      - LINE-ICD
+  - id: REQ-PERF-001
+    text: 1,500-3,000 cycles/h, all process requirements met across the whole range.
+    verification:
+      method: check
+      ref:
+      - VALVE-TIMING
+      - CYC-LIMITS
+  - id: REQ-MECH-001
+    text: No interference anywhere in the cycle, in 3D; 2.0 mm minimum clearance except declared contact/close-approach
+      windows.
+    verification:
+      method: check
+      ref:
+      - SWEEP-CLEARANCE
+      - SWEEP-3D
+  - id: REQ-MECH-002
+    text: Motion laws continuous in position and velocity; all axes within catalog drive limits at max speed.
+    verification:
+      method: check
+      ref:
+      - CYC-LAW
+      - CYC-LIMITS
+  - id: REQ-PROC-007
+    text: Unsupported sheet overhang deflects less than 2 mm and never touches the machine before placement.
+    verification:
+      method: check
+      ref:
+      - SHEET-DYN
+      - SWEEP-CLEARANCE
+  - id: REQ-MECH-003
+    text: 'Every axis sized from catalog data at max speed: speed, acceleration, stroke, payload, peak and RMS torque
+      with 1.25 margin.'
+    verification:
+      method: check
+      ref: BOM-SIZING
+  - id: REQ-MECH-004
+    text: All connected components are interface-compatible and every spec stated in two places agrees.
+    verification:
+      method: check
+      ref:
+      - BOM-IFACE
+      - BOM-XREF
+  - id: REQ-ELEC-001
+    text: Every I/O point mapped to a real channel with matching voltage and current rating; safety devices on safety-rated
+      inputs.
+    verification:
+      method: check
+      ref: IO-MAP
+  - id: REQ-ELEC-002
+    text: 24 VDC and compressed-air demand at max speed within 75% / 70% of supply.
+    verification:
+      method: check
+      ref:
+      - C-24V-BUDGET
+      - C-AIR-BUDGET
+  - id: REQ-CTRL-001
+    text: PLC timing constants are generated from the cycle diagram and I/O list, never hand-edited.
+    verification:
+      method: check
+      ref: PLC-GEN
+  - id: REQ-CTRL-002
+    text: Missing or double sheets never produce glue on the machine; a double is never glued or placed.
+    verification:
+      method: check
+      ref:
+      - SIL-MISSED-PICK
+      - SIL-STACK-EMPTY
+      - SIL-DOUBLE-SHEET
+  - id: REQ-CTRL-003
+    text: 'Guard, e-stop: master and glue off within one PLC scan; gripped sheet held, not dropped.'
+    verification:
+      method: check
+      ref:
+      - SIL-GUARD-MID-GLUE
+      - SIL-ESTOP-IN-TRANSFER
+  - id: REQ-CTRL-004
+    text: Production sequence meets all process requirements including PLC scan quantisation, at every speed.
+    verification:
+      method: check
+      ref: SIL-NOMINAL
+  - id: REQ-SAFE-002
+    text: 'Air loss: controlled fault within 25 ms. Sheet drop on air loss is accepted only if the risk assessment
+      accepts it.'
+    verification:
+      method: check
+      ref: SIL-AIR-LOSS
+  - id: REQ-MECH-005
+    text: The vacuum plate carries an edge stop that registers the endsheet trailing edge before transfer (STK-REGISTRATION
+      depends on it).
+    verification:
+      method: review
+  - id: REQ-SAFE-003
+    text: Every hazard is mitigated; every safety function has a design PL at or above its required PL, uses safety-rated
+      devices and is validated by a SIL scenario.
+    verification:
+      method: check
+      ref: SAFETY
+  - id: REQ-REL-001
+    text: Every failure mode with severity >= 9 or RPN >= 100 has a design action.
+    verification:
+      method: check
+      ref: FMEA
+  - id: REQ-SAFE-001
+    text: Carrier travel zone fully guarded; guard interlock stops motion per the ISO 13849 performance level set
+      by the risk assessment.
+    verification:
+      method: review
+  - id: REQ-MFG-001
+    text: All non-catalog parts makeable on a 3-axis mill or laser + brake; no tolerance tighter than +/-0.05 mm
+      without justification.
+    verification:
+      method: review
+  safety.plr:
+  - F: F2
+    P: P1
+    S: S2
+    id: HZ-1
+  - F: F2
+    P: P1
+    S: S2
+    id: HZ-2
+  - F: F1
+    P: P1
+    S: S2
+    id: HZ-3
+  - F: F2
+    P: P1
+    S: S1
+    id: HZ-4
+  - F: F1
+    P: P2
+    S: S1
+    id: HZ-5
+  sil.expectations:
+  - cycles: 6
+    expect:
+      bead_in_spec: true
+      dropped_max: 0
+      final_state: RUN
+      glue_on_machine_mm_max: 0
+      placed: all
+      registration_tol_mm: 0.3
+    id: SIL-NOMINAL
+    inject: null
+    speeds:
+    - min
+    - nom
+    - max
+  - cycles: 6
+    expect:
+      final_state: RUN
+      glue_on_machine_mm_max: 0
+      no_glue_on_cycles:
+      - 2
+      placed: 5
+    id: SIL-MISSED-PICK
+    inject:
+    - cycles:
+      - 2
+      type: pick_fail
+    speeds: null
+  - cycles: 8
+    expect:
+      dropped_max: 0
+      fault_code: 4
+      final_state: FAULT
+      glue_on_machine_mm_max: 0
+      placed: 3
+    id: SIL-STACK-EMPTY
+    inject: null
+    speeds: null
+  - cycles: 6
+    expect:
+      dropped_max: 0
+      fault_code: 5
+      final_state: FAULT
+      no_glue_on_cycles:
+      - 2
+      placed: 2
+    id: SIL-DOUBLE-SHEET
+    inject:
+    - cycles:
+      - 2
+      type: double_sheet
+    speeds: null
+  - cycles: 4
+    expect:
+      dropped_max: 0
+      fault_code: 1
+      final_state: FAULT
+      glue_off_within_ms: 1.5
+      glue_on_machine_mm_max: 0
+      stop_within_ms: 1.5
+    id: SIL-GUARD-MID-GLUE
+    inject:
+    - angle: 129.5
+      cycle: 2
+      type: guard_open
+    speeds: null
+  - cycles: 4
+    expect:
+      dropped_max: 0
+      fault_code: 2
+      final_state: FAULT
+      stop_within_ms: 1.5
+    id: SIL-ESTOP-IN-TRANSFER
+    inject:
+    - angle: 180
+      cycle: 1
+      type: estop
+    speeds: null
+  - cycles: 4
+    expect:
+      dropped_max: 1
+      fault_code: 3
+      final_state: FAULT
+      glue_on_machine_mm_max: 0
+      stop_within_ms: 21.5
+    id: SIL-AIR-LOSS
+    inject:
+    - angle: 170
+      cycle: 1
+      type: air_loss
+    speeds: null
+  - cycles: 5
+    expect:
+      dropped_max: 0
+      fault_code: 8
+      final_state: FAULT
+      placed: 2
+      placed_without_glue_max: 0
+    id: SIL-GLUE-MISSING
+    inject:
+    - cycles:
+      - 2
+      type: glue_clog
+    speeds: null
+  - cycles: 6
+    expect:
+      dropped_max: 0
+      final_state: RUN
+      glue_on_machine_mm_max: 0
+      no_glue_on_cycles:
+      - 3
+      placed: 5
+    id: SIL-HOST-GAP
+    inject:
+    - cycles:
+      - 3
+      type: host_gap
+    speeds: null
+  - cycles: 4
+    expect:
+      dropped_max: 0
+      fault_code: 7
+      final_state: FAULT
+      glue_on_machine_mm_max: 0
+      stop_within_ms: 1.5
+    id: SIL-DRIVE-FAULT
+    inject:
+    - angle: 160
+      cycle: 1
+      type: drive_fault_x
+    speeds: null
+  stacks.targets:
+  - id: STK-REGISTRATION
+    target:
+      nominal: 0.0
+      tol: 0.3
+  variants:
+    large:
+      sheet_length_mm: 180
+    nominal:
+      sheet_length_mm: 150
+    small:
+      sheet_length_mm: 120

@@ -1,0 +1,14 @@
+# F23: binder interface "added" but never wired into the I/O list, the cycle or the PLC
+host_machines:
+  - {id: BINDER, description: "perfect binder", interface_status: unconfirmed}
+sync: {master: BINDER}
+signals:
+  - id: IF-BOOK-PRESENT
+    from: BINDER
+    tag: xHostBookPresent
+    kind: handshake
+    meaning: "next clamp occupied"
+    available_at_deg: 358
+    latency_ms: 15
+    sampled_by: host_book
+    source: assumed

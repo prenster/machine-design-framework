@@ -1,0 +1,11 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Chief-engineer acceptances",
+  "description": "Written by the chief engineer, never by Claude. Accepts a specific WARN result. FAILs cannot be accepted.",
+  "type": "object",
+  "required": ["accepted"],
+  "properties": {"accepted": {"type": "array", "items": {"type": "object", "required": ["check", "by", "date", "reason"],
+    "additionalProperties": false,
+    "properties": {"check": {"type": "string"}, "speed": {"type": "string"}, "by": {"type": "string"},
+      "date": {"type": "string"}, "reason": {"type": "string"}, "conditions": {"type": "string"}}}}}
+}

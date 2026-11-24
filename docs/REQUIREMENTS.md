@@ -55,6 +55,11 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 | FR-056 | Risk assessment (ISO 13849-1 risk graph) and FMEA structure checks | done (bookkeeping) |
 | FR-057 | Vendor-neutral PLC axis adapter (sim / SoftMotion reference / MOVIKIT to fill) with drive-fault SIL | done (sim), others reference |
 | FR-058 | Spec intake skill, checklist, project scaffold (`mdf new`) | done |
+| FR-061 | Readable check definitions (CHECKS.md), value diffs on change, lock records the approving person | done |
+| FR-062 | Chief-engineer acceptances of specific WARN results (never FAIL), part of the lock | done |
+| FR-063 | Product variants: parameter expressions in all project files; every check runs per variant | done |
+| FR-064 | Line integration ICD with timing budget check; host-state SIL scenarios | done |
+| FR-065 | Per-cycle variable motion (electronic cam offsets from host data) in SIL | roadmap (needed for the endsheet-to-binder machine) |
 | FR-059 | Generalise layout schema beyond carrier pick-and-place (multi-station, rotary, conveyors) | roadmap |
 | FR-060 | Main-shaft/camshaft drive sizing from summed cam torques | roadmap |
 

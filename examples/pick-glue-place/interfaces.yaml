@@ -1,0 +1,23 @@
+# Interface control document (ICD): signals exchanged with host machines in the line.
+# Example: the station feeds a perfect binder; the binder tells us whether the clamp that will receive the
+# next product actually holds a book (gap handling), so we never feed an endsheet into an empty clamp.
+timing_margin_deg: 2
+host_machines:
+  - id: BINDER
+    description: "Perfect binder (Wohlenberg City / Mueller Martini Acoro class) - the line master"
+    interface_status: unconfirmed
+    notes: "Ask the vendor for the machine-to-machine interface spec: encoder output, clamp-occupied / book data signals, handshake timing, protocol."
+sync:
+  master: BINDER
+  note: "Machine angle follows the binder's main encoder (electronic line shaft); our 0 deg = binder clamp at the feed point. Until confirmed, the station runs its own virtual master."
+signals:
+  - id: IF-BOOK-PRESENT
+    from: BINDER
+    tag: xHostBookPresent
+    kind: handshake
+    meaning: "the clamp that receives the NEXT product holds a book; FALSE = gap, skip the next pick"
+    available_at_deg: 330
+    latency_ms: 15
+    sampled_by: host_book
+    source: assumed
+    calibrated_by: PT-13

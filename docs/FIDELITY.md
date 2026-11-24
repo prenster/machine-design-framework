@@ -52,3 +52,17 @@ uprights don't.
 3. **Vendor CAD** (configurators, TraceParts, CADENAS): human download, or Claude in Chrome with your login.
 4. **Vendor application engineers**: free, slow, authoritative. Good for "does this kit exist".
 5. **Physical tests**: the only source for paper, glue, air and real timing.
+
+## Reviewing and approving check definitions
+
+1. Read `<project>/CHECKS.md`: every clearance, tolerance, window, requirement, scenario expectation and limit the
+   checks enforce, in plain YAML. Ask "is this the right promise?", not "is this the right syntax?".
+2. If it's right: `make lock P=<project> BY="<your name>"`. The lock records you as the approver.
+3. Afterwards any change to those values fails verify (CHECK-LOCK) and shows old → new values, until you review and lock again.
+4. A lock written by Claude (`make baseline`) is labelled UNREVIEWED and never counts as approval.
+
+## Accepting a warning
+
+A WARN that you judge acceptable (e.g. a tolerance stack that closes statistically but not worst-case) can be
+accepted in `acceptances.yaml` (template in `templates/`): which check, who, when, why, and the conditions for
+revisiting it. You write it; Claude doesn't. FAILs can't be accepted.

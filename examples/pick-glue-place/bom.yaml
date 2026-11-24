@@ -131,7 +131,7 @@ parts:
     fidelity: {specs: estimate, geometry: estimate}
     specs: {mass_kg: 0.4, material: "6061-T6"}
   - id: VAC_PLATE
-    description: "Vacuum plate, 140 x 180 mm, perforated, Delrin face"
+    description: "Vacuum plate, (sheet length - 10) x 180 mm, perforated, Delrin face. FORMAT PART: one per format, or an adjustable telescoping plate"
     category: machined_part
     qty: 1
     source: custom
@@ -229,6 +229,13 @@ parts:
     qty: 1
     source: example
     specs: {signal_voltage_v: 24, air_consumption_nl_min_continuous: 20}
+  - id: BEAD_SENSOR
+    description: "Glue bead presence sensor after the glue pass (capacitive/IR glue detection or compact vision; to select)"
+    category: sensor
+    qty: 1
+    source: catalog
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {signal_voltage_v: 24, supply_24v_current_a: 0.05, response_ms: 1.0}
   # ---------------- sensors / operator / safety ----------------
   - id: DOUBLE_SENSOR
     fidelity: {specs: estimate, geometry: estimate}
@@ -296,6 +303,20 @@ parts:
     qty: 1
     source: example
     specs: {io_type: DO, channels: 8, voltage_v: 24, current_per_channel_a: 0.5, supply_24v_current_a: 0.1}
+  - id: DI2
+    fidelity: {specs: estimate, geometry: estimate}
+    description: "Digital input card, 8 ch, 24 VDC (line integration, spares)"
+    category: io_card
+    qty: 1
+    source: example
+    specs: {io_type: DI, channels: 8, voltage_v: 24, supply_24v_current_a: 0.1}
+  - id: BINDER_HANDSHAKE
+    fidelity: {specs: estimate, geometry: estimate}
+    description: "Binder interface output (potential-free contact or 24 V output, per binder ICD)"
+    category: interface
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24}
   - id: SDI1
     fidelity: {specs: estimate, geometry: estimate}
     description: "Safety input module, 4 ch, 24 VDC"

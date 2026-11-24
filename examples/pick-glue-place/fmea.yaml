@@ -6,8 +6,11 @@ items:
   - {id: FM-2, item: pick, failure_mode: "no sheet picked", effect: "book without endsheet", cause: "empty stack, curl, leak",
      S: 6, O: 5, D: 2, detection: [SIL-MISSED-PICK, SIL-STACK-EMPTY]}
   - {id: FM-3, item: glue, failure_mode: "nozzle partially clogged: thin or missing bead", effect: "endsheet not tipped; found at casing-in or by the customer",
-     cause: "glue skin, dried adhesive at stops", S: 7, O: 5, D: 7, detection: [],
-     action: "add a bead-presence sensor after the glue pass (vision or capacitive) and a purge cycle at restart; becomes a requirement"}
+     cause: "glue skin, dried adhesive at stops", S: 7, O: 5, D: 3, detection: [SIL-GLUE-MISSING, PT-12],
+     action: "DONE: bead sensor + REQ-PROC-008/009 (D 7 -> 3, RPN 245 -> 105). Still open: purge cycle at restart"}
+  - {id: FM-7, item: bead sensor, failure_mode: "sensor stuck reporting 'bead present'", effect: "unglued sheets placed again (FM-3 returns)",
+     cause: "sensor fault, glue build-up on the sensor face", S: 7, O: 2, D: 8, detection: [],
+     action: "test the sensor every start-up: one deliberate no-glue cycle must be detected, else no start"}
   - {id: FM-4, item: X axis, failure_mode: "belt stretch / pulley wear shifts placement", effect: "registration drift beyond +/-0.3 mm",
      cause: "wear over service life", S: 6, O: 3, D: 6, detection: [STK-REGISTRATION, PT-10],
      action: "periodic registration check in the maintenance plan; datasheet reference service life 5000 km"}

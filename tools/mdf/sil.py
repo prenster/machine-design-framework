@@ -82,7 +82,9 @@ class Plant:
         self.glue_on_machine_mm = 0.0
         self.glue_by_cycle: dict[int, float] = {}
         self.inject = scen.get("inject", [])
+        self.host_signals = proj.data.get("interfaces", {}).get("signals", [])
         self.inputs = {"xguardclosed": True, "xestopok": True, "xairok": True, "xglueready": True,
+                       "xhostbookpresent": True,
                        "xstartpb": False, "xstoppb": False, "xresetpb": False,
                        "xsimdrivefaultx": False, "xsimdrivefaultz": False}
         self.events: list[tuple[float, str]] = []
@@ -109,6 +111,17 @@ class Plant:
         vac = self.valves[self.grip_valve]
         d["xvacok"] = bool(vac.eff and self.gripped is not None and self.inputs["xairok"])
         d["xdoublesheet"] = bool(self.gripped is not None and self.gripped.n >= 2)
+        # host handshake: value for the NEXT cycle becomes valid at available_at + latency
+        for sig in self.host_signals:
+            if sig["tag"].lower() == "xhostbookpresent":
+                valid_from = sig.get("available_at_deg", 0.0) + ms_to_deg(sig.get("latency_ms", 0.0), self.cph)
+                target = self.cycle + 1 if self.angle >= valid_from % 360.0 and valid_from < 360 else self.cycle
+                gap = any(i["type"] == "host_gap" and target in i.get("cycles", []) for i in self.inject)
+                if self.angle >= valid_from % 360.0 or self.angle < 10:
+                    d["xhostbookpresent"] = not gap
+        g = self.gripped
+        min_len = float(self.p.data["params"]["params"].get("bead_min_length_mm", {}).get("value", 0.0))
+        d["xbeadok"] = bool(g is not None and len(g.bead) == 2 and (g.bead[1] - g.bead[0]) >= min_len)
         # scripted switches by cycle/angle
         for inj in self.inject:
             if inj.get("cycle") == self.cycle and self.angle >= inj.get("angle", 0) and not inj.get("_fired"):
@@ -200,6 +213,8 @@ class Plant:
 
     def _glue(self, a1, a2):
         """Glue effective from angle a1 to a2 (continuous, may exceed 360)."""
+        if self._injected("glue_clog"):
+            return                      # nozzle clogged: valve opens, nothing comes out
         g = self.glue
         n = max(2, int(abs(a2 - a1) / 0.01))
         on_sheet = []
@@ -272,6 +287,10 @@ def run_scenario(proj: Project, scen: dict, speed_name: str, cph: float, sources
         if want == "all":
             if len(placed) < plant.cycle:
                 issues.append(f"placed {len(placed)} of {plant.cycle} cycles")
+    if "placed_without_glue_max" in exp:
+        bare = [o for o in placed if not o.bead]
+        if len(bare) > exp["placed_without_glue_max"]:
+            issues.append(f"{len(bare)} sheets placed WITHOUT glue (cycles {[o.cycle for o in bare]})")
     if "dropped_max" in exp and len(dropped) > exp["dropped_max"]:
         issues.append(f"{len(dropped)} sheets dropped (max {exp['dropped_max']})")
     if "registration_tol_mm" in exp:

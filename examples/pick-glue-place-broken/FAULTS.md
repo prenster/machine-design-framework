@@ -27,3 +27,4 @@ any single file. `make verify-broken` must FAIL and name every one.
 | F20 | Clogged-nozzle failure mode (RPN 245) without action; detection pointing at a non-existent check | fmea.yaml | FMEA |
 | F21 | CAD bodies differ from the approved geometry expectations | cad/station.py | CAD-ASSERT |
 | F22 | A SIL expectation relaxed after approval so a failing scenario "passes" | sil.yaml | CHECK-LOCK |
+| F23 | Binder handshake declared but not in the I/O list, not sampled in the cycle, no timing test | interfaces.yaml | LINE-ICD |

@@ -15,6 +15,7 @@ bodies:
   - {id: nozzle_body,        frame: machine, part: GLUE_VALVE}
   - {id: glue_bracket_l,     frame: machine}
   - {id: glue_bracket_r,     frame: machine}
+  - {id: bead_sensor,        frame: machine, part: BEAD_SENSOR}
   - {id: signature,          frame: machine}
   - {id: conveyor,           frame: machine}
   - {id: signature_backstop, frame: machine, part: BACKSTOP}
@@ -25,6 +26,6 @@ bodies:
   - {id: z_module,           frame: x,  part: Z_MODULE,  expect: {bbox_mm: [50, 40, 115], volume_mm3: 230000}}
   - {id: z_slide,            frame: xz, part: Z_MODULE}
   - {id: z_bracket,          frame: xz, part: Z_BRACKET, expect: {bbox_mm: [50, 95, 8], volume_mm3: 38000}}
-  - {id: vacuum_plate,       frame: xz, part: VAC_PLATE, expect: {bbox_mm: [140, 180, 11.85], volume_mm3: 298620, min_z_mm: 0.15}}
+  - {id: vacuum_plate,       frame: xz, part: VAC_PLATE, expect: {bbox_mm: ["=sheet_length_mm - 10", 180, 11.85], volume_mm3: "=(sheet_length_mm - 10) * 180 * 11.85", min_z_mm: 0.15}}
   - {id: ejector,            frame: xz, part: EJECTOR}
   - {id: endsheet,           frame: product}

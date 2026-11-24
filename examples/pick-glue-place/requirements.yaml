@@ -30,6 +30,19 @@ requirements:
     text: "Sheet does not shift on the vacuum plate during transfer."
     category: process
     verification: {method: check, ref: PROD-CARRY}
+  - id: REQ-PROC-008
+    text: "Every glued endsheet is checked for bead presence before placement; a missing or short bead stops the machine holding the sheet, so no unglued endsheet is ever placed."
+    category: process
+    source: "chief engineer, 2026-11-23 (FMEA FM-3, RPN 245)"
+    verification: {method: check, ref: [SIL-GLUE-MISSING]}
+  - id: REQ-PROC-009
+    text: "Bead sensor detects 100% of missing beads and < 0.5% false alarms on production stock and adhesive."
+    category: process
+    verification: {method: test, ref: PT-12}
+  - id: REQ-LINE-001
+    text: "When the binder reports an empty clamp, the station skips that cycle: no pick, no glue, no placed endsheet, no fault."
+    category: controls
+    verification: {method: check, ref: [SIL-HOST-GAP, LINE-ICD]}
   - id: REQ-PERF-001
     text: "1,500-3,000 cycles/h, all process requirements met across the whole range."
     category: performance

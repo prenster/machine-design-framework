@@ -4,18 +4,18 @@ carrier:
   x_axis: x_transfer
   z_axis: z_lift
   bodies:
-    - {id: vacuum_plate, part: VAC_PLATE, polygon: [[5, 0.15], [145, 0.15], [145, 12], [5, 12]]}
+    - {id: vacuum_plate, part: VAC_PLATE, polygon: [[5, 0.15], ["=sheet_length_mm - 5", 0.15], ["=sheet_length_mm - 5", 12], [5, 12]]}   # format part
 
 product:
   id: endsheet
-  polygon: [[0, 0], [150, 0], [150, 0.15], [0, 0.15]]
+  polygon: [[0, 0], ["=sheet_length_mm", 0], ["=sheet_length_mm", "=sheet_thickness_mm"], [0, "=sheet_thickness_mm"]]
   grip_valve: vacuum
   held_by: vacuum_plate
   placed_until: 300
 
 static:
-  - {id: stack,              polygon: [[0, -40], [150, -40], [150, 0], [0, 0]]}
-  - {id: stack_fence,        part: STACK_FENCE, polygon: [[152, -40], [156, -40], [156, 6], [152, 6]]}
+  - {id: stack,              polygon: [[0, -40], ["=sheet_length_mm", -40], ["=sheet_length_mm", 0], [0, 0]]}
+  - {id: stack_fence,        part: STACK_FENCE, polygon: [["=sheet_length_mm + 2", -40], ["=sheet_length_mm + 6", -40], ["=sheet_length_mm + 6", 6], ["=sheet_length_mm + 2", 6]]}
   - {id: nozzle_body,        part: GLUE_VALVE,
      polygon: [[300, -30], [310, -30], [310, -1.5], [306, -1], [304, -1], [300, -1.5]]}
   - {id: signature,          polygon: [[600, -25], [770, -25], [770, 0], [600, 0]]}

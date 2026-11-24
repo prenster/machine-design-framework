@@ -19,16 +19,18 @@ def box(x0, x1, y0, y1, z0, z1):
 
 def build(p: dict) -> dict:
     t = p["sheet_thickness_mm"]
+    L = p["sheet_length_mm"]          # format: varies per product variant
     return {
         # ---- machine (static) ----
         "table":              box(-160, 860, -180, 180, -50, -40),
-        "stack":              box(0, 150, -100, 100, -40, 0),
-        "stack_fence":        box(152, 156, -100, 100, -40, 6),
-        "side_guide_l":       box(0, 150, 101, 105, -40, 5),
-        "side_guide_r":       box(0, 150, -105, -101, -40, 5),
+        "stack":              box(0, L, -100, 100, -40, 0),
+        "stack_fence":        box(L + 2, L + 6, -100, 100, -40, 6),      # format-adjustable fence
+        "side_guide_l":       box(0, L, 101, 105, -40, 5),
+        "side_guide_r":       box(0, L, -105, -101, -40, 5),
         "nozzle_body":        box(300, 310, -95, 95, -30, -1),       # glue jet bar, tips at z = -1
         "glue_bracket_l":     box(298, 312, 95, 125, -40, -10),
         "glue_bracket_r":     box(298, 312, -125, -95, -40, -10),
+        "bead_sensor":        box(338, 352, 60, 80, -25, -6),      # envelope; sensing face 6 mm below the sheet
         "signature":          box(600, 770, -110, 110, -25, 0),
         "conveyor":           box(580, 820, -130, 130, -40, -25),
         "signature_backstop": box(594, 598, -110, 110, -25, 4),
@@ -41,8 +43,8 @@ def build(p: dict) -> dict:
         # ---- xz frame ----
         "z_slide":            box(55, 95, 75, 85, 12, 90),
         "z_bracket":          box(50, 100, -10, 85, 12, 20),
-        "vacuum_plate":       box(5, 145, -90, 90, 0.15, 12),
+        "vacuum_plate":       box(5, L - 5, -90, 90, 0.15, 12),       # format part: sheet length - 10 mm
         "ejector":            box(115, 135, -60, -40, 12, 30),
         # ---- product ----
-        "endsheet":           box(0, 150, -100, 100, 0, t),
+        "endsheet":           box(0, L, -100, 100, 0, t),
     }

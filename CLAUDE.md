@@ -50,13 +50,15 @@ Then read `docs/PHILOSOPHY.md` once per session.
 14. **Claim contract.** You may say "done", "passes", "fits" or "works" only after `make verify` has run on the
     exact files you are claiming about, and you quote its verdict. Install the hook once per clone (`make hooks`);
     it refuses commits whose last verify is stale or FAIL. (Why: docs/PRIOR_ART.md.)
-15. **Never run `make lock` on your own.** `checks.lock` protects every check definition. If CHECK-LOCK fails,
-    restore the check, or show the chief engineer the diff and let them approve and lock it.
+15. **Never approve checks.** `checks.lock` protects every check definition. Only a person runs
+    `make lock BY="<name>"`. You may write an unreviewed baseline (`make baseline`) when the human has approved a
+    specific change in conversation; it never counts as approval, and you say so in the commit. Never write
+    `acceptances.yaml` entries: acceptances come from the chief engineer.
 16. **Actuation preference** (`docs/ACTUATION.md`): mechanical cam > servo > pneumatic by default. Anything else
     carries an `actuation_reason`. Push back when a cam is the wrong tool; say why.
 17. **Intake before design.** A new machine or changed spec goes through the `mdf-intake` skill first.
-18. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
-    speed. Valve and sensor delays are fixed in milliseconds, so they shift in degrees as speed changes.
+18. **Speed and format ranges, not points.** Every timing/motion claim must hold at min, nominal and max
+    speed, and for every product variant in `params.yaml: variants` (smallest, nominal, largest product). Valve and sensor delays are fixed in milliseconds, so they shift in degrees as speed changes.
 
 ## 3. Definition of done (any design change)
 

@@ -34,3 +34,8 @@ description: Controls design - IEC 61131-3 PLC code, SEW MOVI-C / MOVISUITE / MO
   glue_not_ready (by cycle + angle).
 - Before commissioning: run the same ST in CODESYS / the MOVI-C IEC editor. The transpiler is a subset, not the target runtime.
 - Bench: generated cam table on one real servo axis on the mock-up; measure following error; feed back to params.
+
+## Line integration
+Host signals live in `interfaces.yaml` (docs/LINE_INTEGRATION.md). Sample each at a `cycle.yaml` sensor angle;
+LINE-ICD checks the timing budget at every speed. Every host state (gap, not ready, fault, per-product data)
+gets a SIL scenario. Axes whose motion changes per product are servo (electronic cam with per-cycle offset).

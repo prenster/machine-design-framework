@@ -1,7 +1,7 @@
 P ?= examples/pick-glue-place
 PY ?= python3
 
-.PHONY: verify verify-broken install all plc lock hooks claimcheck
+.PHONY: verify verify-broken install all plc lock baseline hooks claimcheck
 
 install:
 	$(PY) -m pip install -r requirements.txt
@@ -10,7 +10,10 @@ verify:
 	PYTHONPATH=tools $(PY) -m mdf verify $(P)
 
 lock:
-	@echo "Approving current check definitions for $(P). Only the chief engineer does this."
+	@test -n "$(BY)" || (echo 'usage: make lock P=<project> BY="<your name>"  (the chief engineer, after reading CHECKS.md)'; exit 2)
+	PYTHONPATH=tools $(PY) -m mdf lock $(P) --by "$(BY)"
+
+baseline:
 	PYTHONPATH=tools $(PY) -m mdf lock $(P)
 
 hooks:
