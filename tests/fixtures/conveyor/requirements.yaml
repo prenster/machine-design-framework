@@ -1,0 +1,6 @@
+station: "TEST FIXTURE: carrier drops a part onto a moving indexing conveyor (flying hand-off)"
+requirements:
+  - id: REQ-PROC-001
+    text: "Part handed to the conveyor at matched position and speed."
+    category: process
+    verification: {method: check, ref: HO-DROP}

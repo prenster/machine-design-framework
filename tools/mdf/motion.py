@@ -108,3 +108,38 @@ def omega_deg_s(cycles_per_hour: float) -> float:
 
 def ms_to_deg(ms: float, cycles_per_hour: float) -> float:
     return ms / 1000.0 * omega_deg_s(cycles_per_hour)
+
+
+def blend(theta: float, window, prev: float, new: float) -> float:
+    """Superimposed per-cycle offset: holds `prev` until the blend window, moves to `new` with a cycloidal
+    law inside it, then holds `new`. This is how an electronic cam takes a per-product correction
+    (PLCopen MC_MoveSuperimposed / a cam slave offset) without a velocity step."""
+    a, b = float(window[0]), float(window[1])
+    t = theta % 360.0
+    if t < a:
+        return prev
+    if t >= b:
+        return new
+    u = (t - a) / (b - a)
+    return prev + (new - prev) * (u - math.sin(2 * math.pi * u) / (2 * math.pi))
+
+
+def blend_peaks(span: float, window) -> tuple[float, float]:
+    """Peak velocity (units/deg) and acceleration (units/deg^2) of a full-range cycloidal blend."""
+    d = float(window[1]) - float(window[0])
+    return 2.0 * span / d, 2.0 * math.pi * span / d ** 2
+
+
+def offset_profile(theta: float, apply_window, return_window, value: float) -> float:
+    """Per-cycle superimposed offset: 0 -> value in the apply window, held, value -> 0 in the return window.
+    The axis is back on its nominal cam before the next cycle's pick."""
+    def ramp(t, w):
+        a, b = float(w[0]), float(w[1])
+        if t < a:
+            return 0.0
+        if t >= b:
+            return 1.0
+        u = (t - a) / (b - a)
+        return u - math.sin(2 * math.pi * u) / (2 * math.pi)
+    t = theta % 360.0
+    return value * (ramp(t, apply_window) - ramp(t, return_window))

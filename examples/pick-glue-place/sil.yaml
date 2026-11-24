@@ -50,6 +50,18 @@ scenarios:
     cycles: 6
     inject: [{type: host_gap, cycles: [3]}]
     expect: {placed: 5, no_glue_on_cycles: [3], glue_on_machine_mm_max: 0, dropped_max: 0, final_state: RUN}
+  - id: SIL-PER-BOOK
+    text: "Every book reports a different spine offset: each endsheet registers to its own book"
+    speeds: [min, max]
+    cycles: 6
+    host_data: {rHostSpineOffset: [0.0, 12.5, 3.2, 15.0, 7.7, 0.5]}
+    expect: {placed: all, registration_tol_mm: 0.3, registration_follows: rHostSpineOffset, bead_in_spec: true,
+             dropped_max: 0, final_state: RUN}
+  - id: SIL-BOOK-OUT-OF-RANGE
+    text: "Binder reports an offset beyond the machine's range: stop holding the sheet, never misplace it"
+    cycles: 4
+    host_data: {rHostSpineOffset: [5.0, 22.0, 5.0, 5.0]}
+    expect: {placed: 1, registration_follows: rHostSpineOffset, registration_tol_mm: 0.3, dropped_max: 0, final_state: FAULT, fault_code: 9}
   - id: SIL-DRIVE-FAULT
     text: "X drive faults mid-transfer: master and glue off within one scan, sheet held, fault 7"
     cycles: 4

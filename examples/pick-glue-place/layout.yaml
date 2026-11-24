@@ -23,7 +23,7 @@ static:
 
 ports:
   pick:  {x: 0,   z: 0, tol_x: 0.3, tol_z: 0.05}
-  place: {x: 600, z: 0, tol_x: 0.3, tol_z: 0.05}
+  place: {x: 600, z: 0, tol_x: 0.3, tol_z: 0.05, shift_with: x_transfer}   # target moves with the per-book offset
   max_speed_at_port_mm_s: 5
 
 glue:
@@ -32,6 +32,10 @@ glue:
   nozzle_z: -1.0
   bead: {start_mm: 3.0, end_mm: 7.0, tol_mm: 1.0}
   gap: {min_mm: 0.5, max_mm: 1.5}
+
+handoffs:
+  - {id: HO-PICK,  from: "port:pick", to: carrier,      at: vacuum.on,  tol_mm: 0.3, vel_tol_mm_s: 5, note: "stack -> vacuum plate"}
+  - {id: HO-PLACE, from: carrier,     to: "port:place", at: vacuum.off, tol_mm: 0.3, vel_tol_mm_s: 5, note: "vacuum plate -> book (port follows the per-book offset)"}
 
 clearance:
   default_min_mm: 2.0

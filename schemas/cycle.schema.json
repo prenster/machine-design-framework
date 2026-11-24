@@ -191,6 +191,59 @@
                 }
               }
             }
+          },
+          "superimposed": {
+            "type": "object",
+            "required": [
+              "tag",
+              "blend",
+              "range",
+              "case_param",
+              "return_blend"
+            ],
+            "properties": {
+              "tag": {
+                "type": "string",
+                "description": "PLC output (REAL) holding the per-cycle offset"
+              },
+              "blend": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "machine-angle window in which the offset changes"
+              },
+              "range": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "case_param": {
+                "type": "string",
+                "description": "param holding the steady offset used by static checks (set per variant)"
+              },
+              "note": {
+                "type": "string"
+              },
+              "return_blend": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2,
+                "description": "window in which the offset returns to 0 (before the next pick)"
+              }
+            }
+          },
+          "incremental_pitch": {
+            "type": "number",
+            "description": "indexing axis: position advances by this much every cycle"
           }
         }
       }

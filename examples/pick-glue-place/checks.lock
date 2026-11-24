@@ -7,16 +7,17 @@ sections:
   cad.expectations: 1d6e21e2141eab09
   cam.limits: 691528175571f257
   constraints: 633cf7e42d1f2905
-  interfaces.timing: c175e6d142ea06a7
+  interfaces.timing: e01dda340f6d993a
   layout.clearance: 9e556783b46d865c
   layout.glue.spec: 5f9dffbc71441314
-  layout.ports: 102ddbaa5fe87bd8
-  params.requirement: 97e6e72b806deb2a
-  requirements: 7972139851fe0b85
+  layout.handoffs: af1ac7eed7ebf77c
+  layout.ports: 40e0bef2b2e019e2
+  params.requirement: fee49dc22a5716dc
+  requirements: 98bd0ae386f2df17
   safety.plr: 426c0af34653270b
-  sil.expectations: 2c43e20926bcab15
+  sil.expectations: 3b3350192d7fd9e5
   stacks.targets: 63d0cee0db58ace5
-  variants: 85406069618a93df
+  variants: 9605cc8870cc7c55
 values:
   acceptances: null
   cad.expectations:
@@ -88,6 +89,10 @@ values:
   - available_at_deg: 330
     id: IF-BOOK-PRESENT
     latency_ms: 15
+    needed_by_deg: null
+  - available_at_deg: 100
+    id: IF-SPINE-OFFSET
+    latency_ms: 8
     needed_by_deg: null
   layout.clearance:
     default_min_mm: 2.0
@@ -194,6 +199,21 @@ values:
     gap:
       max_mm: 1.5
       min_mm: 0.5
+  layout.handoffs:
+  - at: vacuum.on
+    from: port:pick
+    id: HO-PICK
+    note: stack -> vacuum plate
+    to: carrier
+    tol_mm: 0.3
+    vel_tol_mm_s: 5
+  - at: vacuum.off
+    from: carrier
+    id: HO-PLACE
+    note: vacuum plate -> book (port follows the per-book offset)
+    to: port:place
+    tol_mm: 0.3
+    vel_tol_mm_s: 5
   layout.ports:
     max_speed_at_port_mm_s: 5
     pick:
@@ -202,6 +222,7 @@ values:
       x: 0
       z: 0
     place:
+      shift_with: x_transfer
       tol_x: 0.3
       tol_z: 0.05
       x: 600
@@ -215,6 +236,7 @@ values:
     speed_max_cph: 3000
     speed_min_cph: 1500
     speed_nom_cph: 2400
+    x_offset_case_mm: 0
     z_torque_limit_nm: 0.5
   requirements:
   - id: REQ-PROC-001
@@ -261,6 +283,21 @@ values:
     verification:
       method: test
       ref: PT-12
+  - id: REQ-LINE-002
+    text: 'Each endsheet is placed registered to its own book: the binder''s per-book offset (0-15 mm) is applied
+      every cycle within +/-0.3 mm, at every speed.'
+    verification:
+      method: check
+      ref:
+      - SIL-PER-BOOK
+      - LINE-ICD
+      - CYC-LIMITS
+  - id: REQ-LINE-003
+    text: 'A per-book offset outside the machine''s range never places a misregistered endsheet: the station stops
+      holding the sheet.'
+    verification:
+      method: check
+      ref: SIL-BOOK-OUT-OF-RANGE
   - id: REQ-LINE-001
     text: 'When the binder reports an empty clamp, the station skips that cycle: no pick, no glue, no placed endsheet,
       no fault.'
@@ -520,6 +557,30 @@ values:
       - 3
       type: host_gap
     speeds: null
+  - cycles: 6
+    expect:
+      bead_in_spec: true
+      dropped_max: 0
+      final_state: RUN
+      placed: all
+      registration_follows: rHostSpineOffset
+      registration_tol_mm: 0.3
+    id: SIL-PER-BOOK
+    inject: null
+    speeds:
+    - min
+    - max
+  - cycles: 4
+    expect:
+      dropped_max: 0
+      fault_code: 9
+      final_state: FAULT
+      placed: 1
+      registration_follows: rHostSpineOffset
+      registration_tol_mm: 0.3
+    id: SIL-BOOK-OUT-OF-RANGE
+    inject: null
+    speeds: null
   - cycles: 4
     expect:
       dropped_max: 0
@@ -541,7 +602,13 @@ values:
   variants:
     large:
       sheet_length_mm: 180
+    large_offset_max:
+      sheet_length_mm: 180
+      x_offset_case_mm: 15
     nominal:
       sheet_length_mm: 150
     small:
       sheet_length_mm: 120
+    small_offset_max:
+      sheet_length_mm: 120
+      x_offset_case_mm: 15

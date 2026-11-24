@@ -25,6 +25,9 @@
           },
           "z": {
             "type": "string"
+          },
+          "y": {
+            "type": "string"
           }
         }
       }

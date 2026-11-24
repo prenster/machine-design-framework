@@ -38,6 +38,9 @@ is making the checks cover what matters, and being honest about what they don't.
 | Integrity | **CAD-ASSERT** | Kernel-measured bounding box, volume and position of declared bodies (silent-failure screen) | build123d kernel |
 | | **CHECK-LOCK** | No check definition changed without the chief engineer's approval | hashes |
 | | claim contract | Pre-commit hook refuses commits whose last verify is stale or FAIL | hashes |
+| Hand-offs | **HO-*** | Wherever the product changes owner (port, carrier, conveyor, clamp): positions coincide and velocities match, at the effective valve time for each speed. Matched-speed (flying) hand-offs are checked as such | kinematics |
+| Frames | general frames | Any number of moving frames (conveyors, clamps, indexers; x/y/z) in the planar and 3D sweeps; indexing axes with `incremental_pitch`; bodies repeated one pitch upstream (the next product arriving) | kinematics |
+| Per-cycle motion | superimposed offsets | Per-product offsets blended in before use and back out before the next cycle; static checks run at the offset extremes via variants; CYC-LIMITS adds the blend; SIL feeds per-book host data and judges each product against its own target | kinematics + SIL |
 | Line | **LINE-ICD** | Host-machine signals wired, used by the PLC, valid before they are sampled at every speed (incl. latency) | timing budget |
 | Formats | variants | Every check above runs for every product variant (smallest / nominal / largest) | expressions in YAML |
 | Decisions | acceptances | A chief-engineer acceptance turns a specific WARN into ACCEPTED; FAILs cannot be accepted | recorded, locked |
@@ -90,8 +93,18 @@ The FMEA also exposed an undetected failure mode (clogged glue nozzle, RPN 245) 
 - Drive dynamics (following error, tuning) and fieldbus/I/O latency. Bench test on a real axis.
 - **Safety.** SIL scenarios check the sequencing program's reactions; the safety functions themselves run on
   a safety controller and need a qualified person's risk assessment and validation.
+- Drive dynamics on per-cycle offsets: the SIL axis follows its command exactly (0.000 mm error); real following
+  error belongs in the tolerance stack and the bench-axis test.
 - Whether the PLC subset interpreter matches the target runtime exactly. Run the same ST in CODESYS /
   MOVI-C before commissioning.
+
+## Unit tests
+
+`tests/` (pytest, `make test`, run in CI) covers mechanics the examples don't fully exercise, each in both
+directions (good case passes, planted fault fails): flying hand-offs on an indexing conveyor (matched and
+mismatched, delay tolerance), upstream conveyor bodies in the sweep, offset return before pick, the ST
+transpiler (timers, CASE, functions, rejected constructs), cam curvature, stack arithmetic, the check lock,
+and per-book sample timing.
 
 ## Adding a check
 

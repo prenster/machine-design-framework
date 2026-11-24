@@ -59,8 +59,9 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 | FR-062 | Chief-engineer acceptances of specific WARN results (never FAIL), part of the lock | done |
 | FR-063 | Product variants: parameter expressions in all project files; every check runs per variant | done |
 | FR-064 | Line integration ICD with timing budget check; host-state SIL scenarios | done |
-| FR-065 | Per-cycle variable motion (electronic cam offsets from host data) in SIL | roadmap (needed for the endsheet-to-binder machine) |
-| FR-059 | Generalise layout schema beyond carrier pick-and-place (multi-station, rotary, conveyors) | roadmap |
+| FR-065 | Per-cycle variable motion (superimposed offsets from host data) in static checks and SIL | done |
+| FR-059 | General frames (conveyors, clamps, indexers; x/y/z), indexing axes, product ownership after release, hand-off checks with velocity matching | done (rotary frames: roadmap) |
+| FR-066 | Unit-test suite for framework mechanics, run in CI | done |
 | FR-060 | Main-shaft/camshaft drive sizing from summed cam torques | roadmap |
 
 ## Process and roles

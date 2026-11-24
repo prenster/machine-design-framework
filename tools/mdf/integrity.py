@@ -65,6 +65,7 @@ def _raw_sections(proj) -> dict:
     sec = {
         "layout.clearance": lay.get("clearance"),
         "layout.ports": lay.get("ports"),
+        "layout.handoffs": lay.get("handoffs"),
         "layout.glue.spec": {k: v for k, v in (lay.get("glue") or {}).items() if k in ("bead", "gap")},
         "requirements": [{k: r[k] for k in ("id", "text", "verification")} for r in d["requirements"]["requirements"]],
         "params.requirement": {k: v["value"] for k, v in d["params"]["params"].items() if v.get("source") == "requirement"},
@@ -97,6 +98,7 @@ def _sections(proj) -> dict:
 TITLES = {
     "layout.clearance": "Clearances and allowed contacts (mm, machine-angle windows)",
     "layout.ports": "Where the product must be picked and placed, and how precisely",
+    "layout.handoffs": "Product hand-offs between frames: position and velocity matching",
     "layout.glue.spec": "Glue bead position and nozzle gap",
     "requirements": "Requirements and how each is verified",
     "params.requirement": "Numbers set by requirement (speeds, margins, limits)",

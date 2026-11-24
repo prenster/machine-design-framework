@@ -29,7 +29,8 @@ Read [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) for the reasoning.
 
 ```bash
 pip install -r requirements.txt
-make verify          # example station: PASS (physical tests still pending)
+make test           # unit tests of the framework mechanics
+make verify          # example station across all product variants
 make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
 make hooks           # once per clone: install the claim-contract pre-commit hook
 make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
@@ -63,6 +64,8 @@ signature. Carrier and sheet at pick (blue), glue (orange) and place (green); da
 | Tolerances | Worst case, RSS and Monte Carlo stack-ups with the biggest contributors ranked |
 | Safety / reliability | ISO 13849-1 risk graph bookkeeping, safety functions validated by SIL scenarios; FMEA with action thresholds |
 | Formats | Every check runs for every product variant (smallest / nominal / largest) via parameter expressions |
+| Material flow | General moving frames (conveyors, clamps, indexers), product ownership after release, hand-off checks with position **and** velocity matching (flying hand-offs) |
+| Per-product motion | Per-cycle offsets from host data (e.g. per-book registration), checked at the range extremes and in SIL against each product's own target |
 | Line integration | Host-machine interface (ICD) with timing budget at every speed; gap/fault handshakes tested in SIL |
 | Decisions | Readable check definitions (`CHECKS.md`); lock records who approved; chief-engineer acceptances of specific warnings |
 | Integrity | Claim contract (no commit on stale or failed verify), check lock (no silent weakening of checks), CAD kernel assertions |

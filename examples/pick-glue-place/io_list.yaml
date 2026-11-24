@@ -2,7 +2,9 @@
 signals:
   # from the motion controller (virtual master axis), not a physical channel
   - {tag: rAngle,       dir: in,  type: REAL, virtual: true, note: "machine angle 0-360 from the virtual master"}
+  - {tag: rHostSpineOffset, dir: in, type: REAL, virtual: true, note: "from the binder over fieldbus (interfaces.yaml IF-SPINE-OFFSET)"}
   # outputs
+  - {tag: rXOffset,     dir: out, type: REAL, virtual: true, note: "per-cycle superimposed X offset to the drive (mm)"}
   - {tag: xMasterRun,   dir: out, type: BOOL, virtual: true, note: "enable/run the cam master"}
   - {tag: xVacuum,      dir: out, type: BOOL, device: EJECTOR,    card: DO1, ch: 0, cycle_valve: vacuum, note: "ejector's integrated NC suction valve"}
   - {tag: xGlueGun,     dir: out, type: BOOL, device: GLUE_VALVE, card: DO1, ch: 1, cycle_valve: glue_gun}

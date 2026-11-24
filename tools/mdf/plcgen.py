@@ -31,6 +31,12 @@ def gvl_cycle(proj: Project) -> str:
         lines.append(f"    {n}_OFF : REAL := {float(v['off']):.4f};")
     for sid, s in c.get("sensors", {}).items():
         lines.append(f"    {sid.upper()}_CHECK : REAL := {float(s['check_at']):.4f};")
+    for aid, a in c["axes"].items():
+        sup = a.get("superimposed")
+        if sup:
+            n = aid.upper()
+            lines.append(f"    {n}_OFFSET_MIN : REAL := {float(sup['range'][0]):.4f};   (* per-cycle offset range, mm *)")
+            lines.append(f"    {n}_OFFSET_MAX : REAL := {float(sup['range'][1]):.4f};")
     if "park_angle" in c:
         lines.append(f"    PARK_ANGLE : REAL := {float(c['park_angle']):.4f};")
     lines.append("END_VAR")

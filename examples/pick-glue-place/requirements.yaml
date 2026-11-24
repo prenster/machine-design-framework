@@ -39,6 +39,14 @@ requirements:
     text: "Bead sensor detects 100% of missing beads and < 0.5% false alarms on production stock and adhesive."
     category: process
     verification: {method: test, ref: PT-12}
+  - id: REQ-LINE-002
+    text: "Each endsheet is placed registered to its own book: the binder's per-book offset (0-15 mm) is applied every cycle within +/-0.3 mm, at every speed."
+    category: process
+    verification: {method: check, ref: [SIL-PER-BOOK, LINE-ICD, CYC-LIMITS]}
+  - id: REQ-LINE-003
+    text: "A per-book offset outside the machine's range never places a misregistered endsheet: the station stops holding the sheet."
+    category: controls
+    verification: {method: check, ref: SIL-BOOK-OUT-OF-RANGE}
   - id: REQ-LINE-001
     text: "When the binder reports an empty clamp, the station skips that cycle: no pick, no glue, no placed endsheet, no fault."
     category: controls

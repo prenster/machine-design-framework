@@ -5,9 +5,12 @@ variants:
   small:   {sheet_length_mm: 120}
   nominal: {sheet_length_mm: 150}
   large:   {sheet_length_mm: 180}
+  large_offset_max: {sheet_length_mm: 180, x_offset_case_mm: 15}
+  small_offset_max: {sheet_length_mm: 120, x_offset_case_mm: 15}
 
 params:
   sheet_length_mm: {value: 150, unit: mm, source: requirement, note: "endsheet dimension along X (format); see variants"}
+  x_offset_case_mm: {value: 0, unit: mm, source: requirement, note: "steady per-book X offset used by static checks; variants set the extremes"}
   speed_min_cph: {value: 1500, unit: cycles/h, source: requirement}
   speed_nom_cph: {value: 2400, unit: cycles/h, source: requirement}
   speed_max_cph: {value: 3000, unit: cycles/h, source: requirement}

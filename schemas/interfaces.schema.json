@@ -2,19 +2,129 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Interface control document: host machines and line signals",
   "type": "object",
-  "required": ["signals"],
+  "required": [
+    "signals"
+  ],
   "properties": {
-    "timing_margin_deg": {"type": "number"},
-    "host_machines": {"type": "array", "items": {"type": "object", "required": ["id", "description"],
-      "properties": {"id": {"type": "string"}, "description": {"type": "string"},
-        "interface_status": {"enum": ["unconfirmed", "requested", "confirmed"]}, "contact": {"type": "string"}, "notes": {"type": "string"}}}},
-    "sync": {"type": "object", "properties": {"master": {"type": "string"}, "note": {"type": "string"}}},
-    "signals": {"type": "array", "items": {"type": "object", "required": ["id", "from", "tag", "kind", "meaning", "source"],
-      "additionalProperties": false,
-      "properties": {"id": {"type": "string", "pattern": "^IF-[A-Z0-9-]+$"}, "from": {"type": "string"}, "tag": {"type": "string"},
-        "kind": {"enum": ["digital", "encoder", "fieldbus_value", "handshake"]}, "meaning": {"type": "string"},
-        "available_at_deg": {"type": "number"}, "latency_ms": {"type": "number"}, "sampled_by": {"type": "string"},
-        "source": {"enum": ["assumed", "datasheet", "measured", "vendor_icd"]}, "calibrated_by": {"type": "string"},
-        "range": {"type": "array"}, "unit": {"type": "string"}}}}
+    "timing_margin_deg": {
+      "type": "number"
+    },
+    "host_machines": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "description"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "interface_status": {
+            "enum": [
+              "unconfirmed",
+              "requested",
+              "confirmed"
+            ]
+          },
+          "contact": {
+            "type": "string"
+          },
+          "notes": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "sync": {
+      "type": "object",
+      "properties": {
+        "master": {
+          "type": "string"
+        },
+        "note": {
+          "type": "string"
+        }
+      }
+    },
+    "signals": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "from",
+          "tag",
+          "kind",
+          "meaning",
+          "source"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^IF-[A-Z0-9-]+$"
+          },
+          "from": {
+            "type": "string"
+          },
+          "tag": {
+            "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "digital",
+              "encoder",
+              "fieldbus_value",
+              "handshake"
+            ]
+          },
+          "meaning": {
+            "type": "string"
+          },
+          "available_at_deg": {
+            "type": "number"
+          },
+          "latency_ms": {
+            "type": "number"
+          },
+          "sampled_by": {
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "assumed",
+              "datasheet",
+              "measured",
+              "vendor_icd"
+            ]
+          },
+          "calibrated_by": {
+            "type": "string"
+          },
+          "range": {
+            "type": "array"
+          },
+          "unit": {
+            "type": "string"
+          },
+          "applies_to": {
+            "enum": [
+              "current",
+              "next"
+            ],
+            "description": "the value concerns the product of the current cycle or the next one"
+          },
+          "drives": {
+            "type": "string",
+            "description": "axis whose per-cycle offset this value sets"
+          }
+        }
+      }
+    }
   }
 }

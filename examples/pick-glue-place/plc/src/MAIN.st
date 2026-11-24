@@ -6,6 +6,7 @@
    States:  0 IDLE   1 RUN   2 STOPPING (finish cycle, park)   9 FAULT
    Faults:  1 guard open  2 e-stop  3 air loss  4 repeated pick failure  5 double sheet  6 glue unit not ready
             7 drive / motion error (from FB_Axis, any target)  8 glue bead missing
+            9 per-book offset from the binder out of range
 
    Safety: guard and e-stop are safety functions on the safety controller (STO/SS1 on the drives,
    safe output for valves as the risk assessment requires). This program mirrors them only for
@@ -118,6 +119,16 @@ CASE iState OF
         xSkipGlue := TRUE;
         iState := 9;
         iFaultCode := 5;
+    END_IF;
+
+    (* per-book registration: take this book's offset before the X blend window starts *)
+    IF Crossed(rPrev, rAngle, HOST_SPINE_CHECK) THEN
+        IF rHostSpineOffset < X_TRANSFER_OFFSET_MIN OR rHostSpineOffset > X_TRANSFER_OFFSET_MAX THEN
+            iState := 9;
+            iFaultCode := 9;         (* never clamp silently: a clamped offset is a misregistered book *)
+        ELSE
+            rXOffset := rHostSpineOffset;
+        END_IF;
     END_IF;
 
     (* bead check: a sheet that should have glue but doesn't is held, never placed *)

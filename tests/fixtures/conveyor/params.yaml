@@ -1,0 +1,6 @@
+params:
+  speed_min_cph: {value: 1000, unit: cycles/h, source: requirement}
+  speed_nom_cph: {value: 2000, unit: cycles/h, source: requirement}
+  speed_max_cph: {value: 3000, unit: cycles/h, source: requirement}
+  slip: {value: 1000000, unit: mm/s^2, source: requirement}
+  sheet_slip_accel_mm_s2: {value: 1000000, unit: mm/s^2, source: requirement}

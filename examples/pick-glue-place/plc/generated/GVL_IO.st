@@ -1,6 +1,8 @@
-(* GENERATED from io_list.yaml - DO NOT EDIT. source-hash: 26192efeb7bd817a *)
+(* GENERATED from io_list.yaml - DO NOT EDIT. source-hash: db4df5e0d0977f7a *)
 VAR_GLOBAL
     rAngle : REAL;   (* in  virtual *)
+    rHostSpineOffset : REAL;   (* in  virtual *)
+    rXOffset : REAL;   (* out  virtual *)
     xMasterRun : BOOL;   (* out  virtual *)
     xVacuum : BOOL;   (* out  DO1.0 EJECTOR *)
     xGlueGun : BOOL;   (* out  DO1.1 GLUE_VALVE *)

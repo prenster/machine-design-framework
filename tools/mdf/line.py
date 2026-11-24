@@ -60,6 +60,17 @@ def check_line(proj) -> list[CheckResult]:
             issues.append(f"{sid}: sampled_by {sb} is not a cycle.yaml sensor")
             continue
         sample = float(sensors[sb]["check_at"])
+        drives = s.get("drives")
+        if drives:
+            sup = proj.cycle["axes"].get(drives, {}).get("superimposed")
+            if not sup:
+                issues.append(f"{sid}: drives {drives}, which has no superimposed offset")
+            else:
+                start = float(sup["blend"][0])
+                lead = (start - sample) % 360.0
+                (issues if lead < margin or lead > 180 else lines).append(
+                    f"{sid}: sampled at {sample:g} deg, {drives} offset blend starts at {start:g} deg "
+                    f"(lead {lead:.1f} deg, need >= {margin})")
         avail = float(s["available_at_deg"])
         window = (sample - avail) % 360.0
         for name, cph in proj.speeds:

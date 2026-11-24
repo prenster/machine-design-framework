@@ -120,12 +120,12 @@ def run_3d(proj, out_dir: Path | None = None) -> list[CheckResult]:
         world = World(proj, cph)
         worst: dict[tuple, tuple[float, float, float]] = {}
         viol: dict[tuple, list[float]] = {}
-        release_pose = world.carrier(world.grip[1])
         for t in frange(step):
             x, z = world.carrier(t)
-            off = {"machine": (0.0, 0.0, 0.0), "placed": (release_pose[0], 0.0, release_pose[1])}
+            px, pz = world.placed_pose(t)
+            off = {"machine": (0.0, 0.0, 0.0), "placed": (px, 0.0, pz)}
             for fid, f in frames.items():
-                off[fid] = (x if f.get("x") else 0.0, 0.0, z if f.get("z") else 0.0)
+                off[fid] = (world.apos(f.get("x"), t), world.apos(f.get("y"), t), world.apos(f.get("z"), t))
             off["product"] = (x, 0.0, z)
             present = {bid: True for bid in ids}
             present[product_id] = world.gripped(t)

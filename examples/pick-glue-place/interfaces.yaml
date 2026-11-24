@@ -19,5 +19,20 @@ signals:
     available_at_deg: 330
     latency_ms: 15
     sampled_by: host_book
+    applies_to: next
+    source: assumed
+    calibrated_by: PT-13
+  - id: IF-SPINE-OFFSET
+    from: BINDER
+    tag: rHostSpineOffset
+    kind: fieldbus_value
+    meaning: "where THIS book's spine bottom sits relative to the nominal place position, mm (per-book registration)"
+    unit: mm
+    range: [0, 15]
+    available_at_deg: 100
+    latency_ms: 8
+    sampled_by: host_spine
+    drives: x_transfer
+    applies_to: current
     source: assumed
     calibrated_by: PT-13

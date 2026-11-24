@@ -63,8 +63,17 @@ guided_pairs:
 
 ```yaml
 pick: {x: 0, z: 0, tol_x: 0.3, tol_z: 0.05}
-place: {x: 600, z: 0, tol_x: 0.3, tol_z: 0.05}
+place: {x: 600, z: 0, tol_x: 0.3, tol_z: 0.05, shift_with: x_transfer}
 max_speed_at_port_mm_s: 5
+```
+
+## Product hand-offs between frames: position and velocity matching
+
+```yaml
+- {id: HO-PICK, from: 'port:pick', to: carrier, at: vacuum.on, tol_mm: 0.3, vel_tol_mm_s: 5, note: stack -> vacuum
+    plate}
+- {id: HO-PLACE, from: carrier, to: 'port:place', at: vacuum.off, tol_mm: 0.3, vel_tol_mm_s: 5, note: vacuum plate
+    -> book (port follows the per-book offset)}
 ```
 
 ## Glue bead position and nozzle gap
@@ -106,6 +115,16 @@ gap: {min_mm: 0.5, max_mm: 1.5}
 - id: REQ-PROC-009
   text: Bead sensor detects 100% of missing beads and < 0.5% false alarms on production stock and adhesive.
   verification: {method: test, ref: PT-12}
+- id: REQ-LINE-002
+  text: 'Each endsheet is placed registered to its own book: the binder''s per-book offset (0-15 mm) is applied
+    every cycle within +/-0.3 mm, at every speed.'
+  verification:
+    method: check
+    ref: [SIL-PER-BOOK, LINE-ICD, CYC-LIMITS]
+- id: REQ-LINE-003
+  text: 'A per-book offset outside the machine''s range never places a misregistered endsheet: the station stops
+    holding the sheet.'
+  verification: {method: check, ref: SIL-BOOK-OUT-OF-RANGE}
 - id: REQ-LINE-001
   text: 'When the binder reports an empty clamp, the station skips that cycle: no pick, no glue, no placed endsheet,
     no fault.'
@@ -195,8 +214,8 @@ gap: {min_mm: 0.5, max_mm: 1.5}
 ## Numbers set by requirement (speeds, margins, limits)
 
 ```yaml
-{sheet_length_mm: 150, speed_min_cph: 1500, speed_nom_cph: 2400, speed_max_cph: 3000, z_torque_limit_nm: 0.5, sizing_torque_margin: 1.25,
-  plc_scan_ms: 1.0, bead_min_length_mm: 2.0, sheet_max_deflection_mm: 2.0}
+{sheet_length_mm: 150, x_offset_case_mm: 0, speed_min_cph: 1500, speed_nom_cph: 2400, speed_max_cph: 3000, z_torque_limit_nm: 0.5,
+  sizing_torque_margin: 1.25, plc_scan_ms: 1.0, bead_min_length_mm: 2.0, sheet_max_deflection_mm: 2.0}
 ```
 
 ## What each PLC simulation scenario must show
@@ -274,6 +293,18 @@ gap: {min_mm: 0.5, max_mm: 1.5}
     glue_on_machine_mm_max: 0
     dropped_max: 0
     final_state: RUN
+- id: SIL-PER-BOOK
+  speeds: [min, max]
+  cycles: 6
+  inject: null
+  expect: {placed: all, registration_tol_mm: 0.3, registration_follows: rHostSpineOffset, bead_in_spec: true, dropped_max: 0,
+    final_state: RUN}
+- id: SIL-BOOK-OUT-OF-RANGE
+  speeds: null
+  cycles: 4
+  inject: null
+  expect: {placed: 1, registration_follows: rHostSpineOffset, registration_tol_mm: 0.3, dropped_max: 0, final_state: FAULT,
+    fault_code: 9}
 - id: SIL-DRIVE-FAULT
   speeds: null
   cycles: 4
@@ -355,6 +386,7 @@ jogger: {pressure_angle_deg: 30, curvature_ratio_min: 2.0, jump_margin_n: 10, ro
 
 ```yaml
 - {id: IF-BOOK-PRESENT, available_at_deg: 330, needed_by_deg: null, latency_ms: 15}
+- {id: IF-SPINE-OFFSET, available_at_deg: 100, needed_by_deg: null, latency_ms: 8}
 ```
 
 ## Product size variants every check runs for
@@ -363,4 +395,6 @@ jogger: {pressure_angle_deg: 30, curvature_ratio_min: 2.0, jump_margin_n: 10, ro
 small: {sheet_length_mm: 120}
 nominal: {sheet_length_mm: 150}
 large: {sheet_length_mm: 180}
+large_offset_max: {sheet_length_mm: 180, x_offset_case_mm: 15}
+small_offset_max: {sheet_length_mm: 120, x_offset_case_mm: 15}
 ```

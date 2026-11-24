@@ -55,7 +55,13 @@ def frange(step: float):
 
 
 class World:
-    """Planar (side-view) kinematic world at a given machine speed."""
+    """Planar (side-view) kinematic world at a given machine speed.
+
+    Frames: 'carrier' (layout.carrier, x/z axes) plus any layout.frames (conveyors, clamps, indexers).
+    Axes with a `superimposed` per-cycle offset use the steady case value from params (set per variant),
+    so static checks cover the offset range through variants. Incremental (indexing) axes can repeat
+    bodies one pitch upstream (the next product arriving).
+    """
 
     def __init__(self, proj: Project, cph: float):
         self.p = proj
@@ -64,25 +70,71 @@ class World:
         car = lay["carrier"]
         self.ax_x = proj.axes[car["x_axis"]]
         self.ax_z = proj.axes[car["z_axis"]]
+        self.offsets = {}
+        self.sup = {}
+        for aid, spec in proj.cycle["axes"].items():
+            sup = spec.get("superimposed")
+            if sup:
+                self.offsets[aid] = proj.param(sup["case_param"])
+                self.sup[aid] = sup
+        self.frames = {"carrier": {"x": car["x_axis"], "z": car["z_axis"], "product_ref": [0.0, 0.0]}}
+        self.frames.update(lay.get("frames", {}))
         self.carrier_bodies = [(b["id"], Polygon(b["polygon"])) for b in car["bodies"]]
+        self.frame_bodies = [(b["id"], b["frame"], Polygon(b["polygon"]), int(b.get("repeat_upstream", 0)))
+                             for b in lay.get("moving", [])]
         self.static = [(b["id"], Polygon(b["polygon"])) for b in lay["static"]]
         prod = lay["product"]
         self.product_id = prod["id"]
         self.product_poly = Polygon(prod["polygon"])
         self.grip_valve = prod["grip_valve"]
         self.placed_until = float(prod["placed_until"])
+        self.placed_frame = prod.get("placed_frame")
         self.grip = self.valve_window(self.grip_valve)
         self.thickness = self.product_poly.bounds[3] - self.product_poly.bounds[1]
         self._sheet = None
         self._sheet_done = False
 
+    # -- kinematics
+    def apos(self, axis_id: str | None, theta: float) -> float:
+        if not axis_id:
+            return 0.0
+        base = self.p.axes[axis_id].pos(theta)
+        sup = self.sup.get(axis_id)
+        if not sup:
+            return base
+        from .motion import offset_profile
+        return base + offset_profile(theta, sup["blend"], sup["return_blend"], self.offsets[axis_id])
+
+    def avel(self, axis_id: str | None, theta: float) -> float:
+        """mm/s (steady offset adds no velocity)."""
+        if not axis_id:
+            return 0.0
+        return self.p.axes[axis_id].eval(theta)[1] * omega_deg_s(self.cph)
+
+    def frame_pos(self, name: str, theta: float) -> tuple[float, float]:
+        f = self.frames[name]
+        return self.apos(f.get("x"), theta), self.apos(f.get("z"), theta)
+
+    def frame_vel(self, name: str, theta: float) -> tuple[float, float]:
+        f = self.frames[name]
+        return self.avel(f.get("x"), theta), self.avel(f.get("z"), theta)
+
+    def pitch(self, name: str) -> float:
+        ax = self.frames[name].get("x")
+        return float(self.p.cycle["axes"][ax].get("incremental_pitch", 0.0)) if ax else 0.0
+
     def supported(self, theta: float) -> bool:
         x, z = self.carrier(theta)
         for port in ("pick", "place"):
-            p = self.p.layout["ports"][port]
-            if abs(x - p["x"]) <= p["tol_x"] and abs(z - p["z"]) <= p["tol_z"]:
+            px, pz, p = self.port(port)
+            if abs(x - px) <= p["tol_x"] and abs(z - pz) <= p["tol_z"]:
                 return True
         return False
+
+    def port(self, name: str):
+        p = self.p.layout["ports"][name]
+        shift = self.offsets.get(p.get("shift_with"), 0.0) if p.get("shift_with") else 0.0
+        return p["x"] + shift, p["z"], p
 
     @property
     def sheet(self):
@@ -110,8 +162,15 @@ class World:
         off = v["off"] + ms_to_deg(self.p.num(v["off_delay"]), self.cph)
         return on % 360.0, off % 360.0
 
+    def event_angle(self, at) -> float:
+        if isinstance(at, (int, float)):
+            return float(at) % 360.0
+        valve, edge = str(at).rsplit(".", 1)
+        on, off = self.valve_window(valve)
+        return on if edge == "on" else off
+
     def carrier(self, theta: float) -> tuple[float, float]:
-        return self.ax_x.pos(theta), self.ax_z.pos(theta)
+        return self.frame_pos("carrier", theta)
 
     def gripped(self, theta: float) -> bool:
         return in_window(theta, self.grip)
@@ -124,13 +183,34 @@ class World:
         out = [(bid, affinity.translate(poly, x, z)) for bid, poly in self.carrier_bodies]
         if self.gripped(theta):
             out.append((self.product_id, affinity.translate(self.product_shape(theta), x, z)))
+        out += self.frame_body_list(theta)
         return out
+
+    def frame_body_list(self, theta: float):
+        out = []
+        for bid, fname, poly, rep in self.frame_bodies:
+            fx, fz = self.frame_pos(fname, theta)
+            out.append((bid, affinity.translate(poly, fx, fz)))
+            p = self.pitch(fname)
+            for k in range(1, rep + 1):
+                out.append((f"{bid}#{k}", affinity.translate(poly, fx - k * p, fz)))
+        return out
+
+    def placed_pose(self, theta: float) -> tuple[float, float]:
+        rx, rz = self.carrier(self.grip[1])
+        if self.placed_frame:
+            f0 = self.frame_pos(self.placed_frame, self.grip[1])
+            f1 = self.frame_pos(self.placed_frame, theta)
+            if (theta - self.grip[1]) % 360.0 < (self.placed_until - self.grip[1]) % 360.0 and f1[0] < f0[0] - 1e-9:
+                f1 = (f1[0] + self.pitch(self.placed_frame), f1[1])   # indexing axis wrapped
+            return rx + f1[0] - f0[0], rz + f1[1] - f0[1]
+        return rx, rz
 
     def static_bodies(self, theta: float):
         out = list(self.static)
         if self.placed(theta):
-            rx, rz = self.carrier(self.grip[1])
-            out.append((f"{self.product_id}_placed", affinity.translate(self.product_poly, rx, rz)))
+            px, pz = self.placed_pose(theta)
+            out.append((f"{self.product_id}_placed", affinity.translate(self.product_poly, px, pz)))
         return out
 
 
@@ -152,6 +232,8 @@ def check_cycle_law(proj: Project) -> list[CheckResult]:
                 continue
             sa, va, aa = a.eval(a.end)
             sb, vb, ab = b.eval(b.start)
+            if wrap:
+                sb += float(axis.spec.get("incremental_pitch", 0.0))
             at = f"{a.end:g} deg" + (" (cycle wrap)" if wrap else "")
             if abs(sa - sb) > 1e-6:
                 issues.append(f"position jump at {at}: {sa:.4f} -> {sb:.4f}")
@@ -180,12 +262,21 @@ def check_cycle_limits(proj: Project) -> list[CheckResult]:
             vs.append(abs(v) * w)
             accs.append(abs(a) * w * w)
         vpk, apk = max(vs), max(accs)
+        sup = axis.spec.get("superimposed")
+        extra = ""
+        if sup:
+            from .motion import blend_peaks
+            span = abs(sup["range"][1] - sup["range"][0])
+            bv, ba = max(blend_peaks(span, sup["blend"]), blend_peaks(span, sup["return_blend"]))
+            vpk += bv * w
+            apk += ba * w * w
+            extra = f" (incl. full-range per-cycle offset blend {sup['blend'][0]:g}-{sup['blend'][1]:g} deg, conservative)"
         ok = vpk <= vmax_lim and apk <= amax_lim
         unit = axis.spec.get("unit", "mm")
         results.append(CheckResult(
             "CYC-LIMITS", PASS if ok else FAIL,
             f"axis {axis.id} @ {cph:g} cph: v_pk {vpk:,.0f}/{vmax_lim:,.0f} {unit}/s, "
-            f"a_pk {apk:,.0f}/{amax_lim:,.0f} {unit}/s^2",
+            f"a_pk {apk:,.0f}/{amax_lim:,.0f} {unit}/s^2" + extra,
             [], speed="max"))
     return results
 
@@ -209,12 +300,18 @@ def check_valve_timing(proj: Project) -> list[CheckResult]:
 
 # ------------------------------------------------------------ clearance sweep
 def clearance_required(proj: Project, a: str, b: str, theta: float) -> float:
+    a, b = a.split("#")[0], b.split("#")[0]
     cl = proj.layout["clearance"]
     for rule in cl.get("rules", []):
         pair = set(rule["between"])
         if pair == {a, b} and in_window(theta, rule["window"]):
             return float(rule["min_mm"])
     return float(cl["default_min_mm"])
+
+
+def _is_frame_body(world, bid: str) -> bool:
+    base = bid.split("#")[0]
+    return any(b[0] == base for b in world.frame_bodies)
 
 
 def check_sweep(proj: Project) -> list[CheckResult]:
@@ -225,8 +322,12 @@ def check_sweep(proj: Project) -> list[CheckResult]:
         worst: dict[tuple[str, str], tuple[float, float, float]] = {}  # pair -> (margin, dist, theta)
         violations: dict[tuple[str, str], list[float]] = {}
         for t in frange(step):
-            for mid, mpoly in world.moving_bodies(t):
-                for sid, spoly in world.static_bodies(t):
+            carrier_side = [b for b in world.moving_bodies(t) if not _is_frame_body(world, b[0])]
+            others = world.static_bodies(t) + world.frame_body_list(t)
+            pairs_t = [(m, o) for m in carrier_side for o in others]
+            pairs_t += [(f, st) for f in world.frame_body_list(t) for st in world.static_bodies(t)]
+            for (mid, mpoly), (sid, spoly) in pairs_t:
+                if True:
                     d = mpoly.distance(spoly)
                     if mpoly.intersects(spoly) and mpoly.intersection(spoly).area > 1e-9:
                         d = -mpoly.intersection(spoly).area ** 0.5  # rough penetration depth
@@ -253,9 +354,13 @@ def check_sweep(proj: Project) -> list[CheckResult]:
 
 
 # --------------------------------------------------------------- product path
-def _at_port(proj: Project, x: float, z: float, port: str) -> tuple[bool, float, float]:
-    p = proj.layout["ports"][port]
-    dx, dz = x - p["x"], z - p["z"]
+def _at_port(proj: Project, x: float, z: float, port: str, world=None) -> tuple[bool, float, float]:
+    if world is not None:
+        px, pz, p = world.port(port)
+    else:
+        p = proj.layout["ports"][port]
+        px, pz = p["x"], p["z"]
+    dx, dz = x - px, z - pz
     return abs(dx) <= p["tol_x"] and abs(dz) <= p["tol_z"], dx, dz
 
 
@@ -274,7 +379,7 @@ def check_product(proj: Project) -> list[CheckResult]:
         on, off = world.grip
 
         # PICK: vacuum effective while still parked at pick port, and stays parked until then
-        ok_on, dx, dz = _at_port(proj, *world.carrier(on), "pick")
+        ok_on, dx, dz = _at_port(proj, *world.carrier(on), "pick", world)
         issues = []
         if not ok_on:
             issues.append(f"vacuum becomes effective at {on:.2f} deg but carrier is {dx:+.2f} mm x / {dz:+.2f} mm z "
@@ -284,7 +389,7 @@ def check_product(proj: Project) -> list[CheckResult]:
         cmd_on = proj.cycle["valves"][world.grip_valve]["on"]
         t = cmd_on
         while in_window(t, (cmd_on, on)) and t < cmd_on + 360:
-            if not _at_port(proj, *world.carrier(t), "pick")[0]:
+            if not _at_port(proj, *world.carrier(t), "pick", world)[0]:
                 issues.append(f"carrier leaves pick port at {t % 360:.2f} deg, before vacuum is established ({on:.2f} deg)")
                 break
             t += 0.05
@@ -292,7 +397,7 @@ def check_product(proj: Project) -> list[CheckResult]:
                                    f"grip effective {on:.2f} deg @ {cph:g} cph", issues, speed=name))
 
         # PLACE: release at place port, carrier at rest
-        ok_off, dx, dz = _at_port(proj, *world.carrier(off), "place")
+        ok_off, dx, dz = _at_port(proj, *world.carrier(off), "place", world)
         issues = []
         if not ok_off:
             issues.append(f"vacuum releases at {off:.2f} deg with carrier {dx:+.2f} mm x / {dz:+.2f} mm z from the place port: "
@@ -367,6 +472,42 @@ def check_glue(proj: Project) -> list[CheckResult]:
     return results
 
 
+def _endpoint(world: World, ref: str, theta: float):
+    """pose (x, z) and velocity (vx, vz) of a hand-off endpoint: a frame's product reference, or a port."""
+    if ref.startswith("port:"):
+        px, pz, _ = world.port(ref[5:])
+        return (px, pz), (0.0, 0.0)
+    fx, fz = world.frame_pos(ref, theta)
+    rx, rz = world.frames[ref].get("product_ref", [0.0, 0.0])
+    return (fx + rx, fz + rz), world.frame_vel(ref, theta)
+
+
+def check_handoffs(proj: Project) -> list[CheckResult]:
+    """Every place the product changes owner: positions must coincide and velocities must match
+    (a flying hand-off onto a moving conveyor needs matched speed, not zero speed)."""
+    hos = proj.layout.get("handoffs", [])
+    results = []
+    for ho in hos:
+        for name, cph in proj.speeds:
+            world = World(proj, cph)
+            t = world.event_angle(ho["at"])
+            (ax, az), (avx, avz) = _endpoint(world, ho["from"], t)
+            (bx, bz), (bvx, bvz) = _endpoint(world, ho["to"], t)
+            dx, dz = ax - bx, az - bz
+            dvx, dvz = avx - bvx, avz - bvz
+            vtol = float(ho.get("vel_tol_mm_s", 5.0))
+            issues = []
+            if abs(dx) > ho["tol_mm"] or abs(dz) > ho["tol_mm"]:
+                issues.append(f"position mismatch at {t:.2f} deg: dx {dx:+.3f} mm, dz {dz:+.3f} mm (tol {ho['tol_mm']})")
+            if math.hypot(dvx, dvz) > vtol:
+                issues.append(f"velocity mismatch at {t:.2f} deg: {ho['from']} ({avx:.0f}, {avz:.0f}) vs "
+                              f"{ho['to']} ({bvx:.0f}, {bvz:.0f}) mm/s (tol {vtol}): product is dragged, thrown or skids")
+            results.append(CheckResult(ho["id"], FAIL if issues else PASS,
+                                       f"{ho['from']} -> {ho['to']} at {ho['at']} ({t:.2f} deg): dx {dx:+.3f} mm, "
+                                       f"dv {math.hypot(dvx, dvz):.1f} mm/s @ {cph:g} cph", issues, speed=name))
+    return results
+
+
 def check_sheet(proj: Project) -> list[CheckResult]:
     if "sheet_bending_stiffness_mNm" not in proj.data["params"]["params"]:
         return []
@@ -390,7 +531,7 @@ def check_sheet(proj: Project) -> list[CheckResult]:
     return results
 
 
-ALL_CHECKS = [check_sheet, check_cycle_law, check_cycle_limits, check_valve_timing, check_sweep, check_product, check_glue]
+ALL_CHECKS = [check_handoffs, check_sheet, check_cycle_law, check_cycle_limits, check_valve_timing, check_sweep, check_product, check_glue]
 
 
 def run_all(proj: Project) -> list[CheckResult]:

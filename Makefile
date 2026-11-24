@@ -1,7 +1,7 @@
 P ?= examples/pick-glue-place
 PY ?= python3
 
-.PHONY: verify verify-broken install all plc lock baseline hooks claimcheck
+.PHONY: verify verify-broken install all plc lock baseline hooks claimcheck test
 
 install:
 	$(PY) -m pip install -r requirements.txt
@@ -30,4 +30,7 @@ verify-broken:
 	@PYTHONPATH=tools $(PY) -m mdf verify examples/pick-glue-place-broken --out /tmp/mdf-broken; \
 	 rc=$$?; if [ $$rc -eq 1 ]; then echo "OK: broken example failed as expected"; else echo "ERROR: broken example did not fail (rc=$$rc)"; exit 1; fi
 
-all: verify verify-broken
+test:
+	$(PY) -m pytest -q tests/
+
+all: test verify verify-broken

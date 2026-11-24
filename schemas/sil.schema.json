@@ -70,6 +70,10 @@
           },
           "expect": {
             "type": "object"
+          },
+          "host_data": {
+            "type": "object",
+            "description": "per-cycle host values: tag -> list (cycled)"
           }
         }
       }

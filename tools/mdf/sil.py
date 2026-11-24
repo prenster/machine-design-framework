@@ -83,6 +83,15 @@ class Plant:
         self.glue_by_cycle: dict[int, float] = {}
         self.inject = scen.get("inject", [])
         self.host_signals = proj.data.get("interfaces", {}).get("signals", [])
+        self.host_data = {k.lower(): v for k, v in (scen.get("host_data") or {}).items()}
+        self.follows = (scen.get("expect", {}).get("registration_follows") or "").lower()
+        # per-cycle superimposed offsets on the carrier axes
+        self.sup = {}
+        for aid in (proj.layout["carrier"]["x_axis"], proj.layout["carrier"]["z_axis"]):
+            sp = proj.cycle["axes"][aid].get("superimposed")
+            if sp:
+                self.sup[aid] = {"spec": sp, "prev": 0.0, "new": 0.0}
+        self.prev_angle = 0.0
         self.inputs = {"xguardclosed": True, "xestopok": True, "xairok": True, "xglueready": True,
                        "xhostbookpresent": True,
                        "xstartpb": False, "xstoppb": False, "xresetpb": False,
@@ -90,13 +99,30 @@ class Plant:
         self.events: list[tuple[float, str]] = []
 
     # -- geometry
-    def carrier(self, angle):
-        return self.ax_x.pos(angle), self.ax_z.pos(angle)
+    def _offset(self, axis_id, angle):
+        st = self.sup.get(axis_id)
+        if not st:
+            return 0.0
+        from .motion import offset_profile
+        return offset_profile(angle, st["spec"]["blend"], st["spec"]["return_blend"], st["new"])
 
-    def at_port(self, angle, port):
+    def carrier(self, angle):
+        return (self.ax_x.pos(angle) + self._offset(self.ax_x.id, angle),
+                self.ax_z.pos(angle) + self._offset(self.ax_z.id, angle))
+
+    def host_value(self, tag: str, cycle: int):
+        vals = self.host_data.get(tag.lower())
+        if not vals:
+            return 0.0
+        return float(vals[cycle % len(vals)])
+
+    def at_port(self, angle, port, cycle=None):
         x, z = self.carrier(angle)
         p = self.ports[port]
-        return abs(x - p["x"]) <= p["tol_x"] and abs(z - p["z"]) <= p["tol_z"], x - p["x"]
+        px = p["x"]
+        if port == "place" and self.follows:
+            px += self.host_value(self.follows, self.cycle if cycle is None else cycle)   # this book's own target
+        return abs(x - px) <= p["tol_x"] and abs(z - p["z"]) <= p["tol_z"], x - px
 
     def _injected(self, kind: str) -> dict | None:
         for inj in self.inject:
@@ -119,6 +145,14 @@ class Plant:
                 gap = any(i["type"] == "host_gap" and target in i.get("cycles", []) for i in self.inject)
                 if self.angle >= valid_from % 360.0 or self.angle < 10:
                     d["xhostbookpresent"] = not gap
+        for sig in self.host_signals:
+            tag = sig["tag"].lower()
+            if tag in self.host_data:
+                valid = (sig.get("available_at_deg", 0.0) + ms_to_deg(sig.get("latency_ms", 0.0), self.cph)) % 360.0
+                c = self.cycle if self.angle >= valid else self.cycle - 1
+                if sig.get("applies_to", "current") == "next":
+                    c += 1
+                d[tag] = self.host_value(tag, c)
         g = self.gripped
         min_len = float(self.p.data["params"]["params"].get("bead_min_length_mm", {}).get("value", 0.0))
         d["xbeadok"] = bool(g is not None and len(g.bead) == 2 and (g.bead[1] - g.bead[0]) >= min_len)
@@ -146,6 +180,11 @@ class Plant:
     # -- one scan
     def step(self, out: dict, dt: float):
         t0, a0 = self.t, self.angle
+        for aid, st in self.sup.items():
+            a = float(st["spec"]["blend"][0])
+            if (self.prev_angle < a <= a0) or (a0 < self.prev_angle and (a > self.prev_angle or a <= a0)):
+                st["prev"], st["new"] = st["new"], float(out.get(st["spec"]["tag"].lower(), 0.0))
+        self.prev_angle = a0
         running = bool(out.get("xmasterrun"))
         for vid, v in self.valves.items():
             tag = self.valve_tag.get(vid)
@@ -202,9 +241,13 @@ class Plant:
         s = self.gripped
         if s is None:
             return
-        ok, dx = self.at_port(ang, "place")
-        if ok:
-            s.placed, s.dx = True, dx
+        ok, dx = self.at_port(ang, "place", s.cycle)
+        _, z = self.carrier(ang)
+        on_surface = abs(z - self.ports["place"]["z"]) <= self.ports["place"]["tol_z"] and abs(dx) < 50.0
+        if ok or on_surface:
+            s.placed, s.dx = True, dx        # registration error (if any) is judged by registration_tol_mm
+            if not ok:
+                self.events.append((t, f"sheet placed OFF-REGISTER by {dx:+.2f} mm (cycle {s.cycle})"))
         else:
             s.dropped = True
             self.events.append((t, f"sheet DROPPED at {ang:.1f} deg (cycle {s.cycle})"))
@@ -256,7 +299,8 @@ def run_scenario(proj: Project, scen: dict, speed_name: str, cph: float, sources
         for name, val in plant.plc_inputs().items():
             setattr(G, name, val)
         prog()
-        out = {n: getattr(G, n) for n in ("xmasterrun", *plant.valve_tag.values())}
+        out = {n: getattr(G, n) for n in ("xmasterrun", *plant.valve_tag.values(),
+                                           *[st["spec"]["tag"].lower() for st in plant.sup.values()])}
         inj_t = min([i["_t"] for i in plant.inject if "_t" in i], default=None)
         if inj_t is not None:
             if stop_t is None and not out["xmasterrun"]:
@@ -293,6 +337,10 @@ def run_scenario(proj: Project, scen: dict, speed_name: str, cph: float, sources
             issues.append(f"{len(bare)} sheets placed WITHOUT glue (cycles {[o.cycle for o in bare]})")
     if "dropped_max" in exp and len(dropped) > exp["dropped_max"]:
         issues.append(f"{len(dropped)} sheets dropped (max {exp['dropped_max']})")
+    if exp.get("registration_follows"):
+        notes.append(f"registration measured against each book's own target ({exp['registration_follows']})")
+        if placed:
+            notes.append(f"worst registration error {max(abs(o.dx) for o in placed):.3f} mm over {len(placed)} books")
     if "registration_tol_mm" in exp:
         bad = [o for o in placed if abs(o.dx) > exp["registration_tol_mm"]]
         if bad:

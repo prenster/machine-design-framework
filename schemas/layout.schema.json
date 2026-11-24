@@ -61,6 +61,10 @@
         },
         "tol_z": {
           "type": "number"
+        },
+        "shift_with": {
+          "type": "string",
+          "description": "axis whose superimposed offset moves this target"
         }
       }
     }
@@ -112,6 +116,10 @@
         },
         "held_by": {
           "type": "string"
+        },
+        "placed_frame": {
+          "type": "string",
+          "description": "frame that carries the product after release"
         }
       }
     },
@@ -220,6 +228,101 @@
                 "type": "string"
               }
             }
+          }
+        }
+      }
+    },
+    "frames": {
+      "type": "object",
+      "description": "extra moving frames (conveyors, clamps, indexers); 'carrier' is implicit",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "string"
+          },
+          "z": {
+            "type": "string"
+          },
+          "product_ref": {
+            "type": "array",
+            "items": {
+              "type": "number"
+            }
+          },
+          "note": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "moving": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "frame",
+          "polygon"
+        ],
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "frame": {
+            "type": "string"
+          },
+          "polygon": {
+            "$ref": "#/$defs/polygon"
+          },
+          "part": {
+            "type": "string"
+          },
+          "repeat_upstream": {
+            "type": "integer",
+            "description": "incremental frames: also place N copies one pitch upstream (next products)"
+          }
+        }
+      }
+    },
+    "handoffs": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "from",
+          "to",
+          "at",
+          "tol_mm"
+        ],
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^HO-[A-Z0-9-]+$"
+          },
+          "from": {
+            "type": "string",
+            "description": "frame name, 'carrier', or 'port:<name>'"
+          },
+          "to": {
+            "type": "string"
+          },
+          "at": {
+            "type": [
+              "number",
+              "string"
+            ],
+            "description": "machine angle, or '<valve>.on' / '<valve>.off' (effective, per speed)"
+          },
+          "tol_mm": {
+            "type": "number"
+          },
+          "vel_tol_mm_s": {
+            "type": "number"
+          },
+          "note": {
+            "type": "string"
           }
         }
       }

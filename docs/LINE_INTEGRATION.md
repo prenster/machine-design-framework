@@ -28,6 +28,12 @@ what it reports (gaps, book data, faults), and never put product into the host a
 When each product is different (e.g. endsheets registered to each book's measured spine/clamp position), the
 host supplies data per cycle, and some motion changes **per cycle**:
 
+- Implemented as a `superimposed` offset on the axis in `cycle.yaml`: a PLC output (e.g. `rXOffset`), a `blend`
+  window where the offset moves in, a `return_blend` window where it moves out (the axis is back on its nominal cam
+  before the next cycle), a `range`, and a `case_param` that variants set to the extremes for the static checks.
+  The ICD signal that feeds it names the axis (`drives:`) and LINE-ICD checks it is sampled before the blend starts.
+  SIL scenarios give per-book values (`host_data`) and judge each product against its own target
+  (`registration_follows`); out-of-range values must stop the machine, never clamp silently.
 - That axis must be **servo** (electronic cam with a per-cycle offset or scaled segment), not a mechanical cam:
   a cam can't change shape between cycles. This is a legitimate `actuation_reason`. Everything that does
   *not* vary per product can still be cammed.
