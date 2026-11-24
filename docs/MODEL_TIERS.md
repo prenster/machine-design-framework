@@ -14,7 +14,11 @@ When newer models ship, update this table, not the labels.
 
 | Task | Tier | Why |
 |---|---|---|
+| Spec intake (requirements, gaps, conflicts, questions) | **A** | Mistakes here are the most expensive in the whole project |
 | Process definition (product states, ports, tolerances) | **A** | Every later decision rests on it |
+| Mechanical cam design (law choice, base circle, follower, spring) | **A** | Coupled geometry/dynamics trade-offs |
+| Tolerance stack definition (which chain, which contributors) | **A** | A missing contributor makes the stack lie |
+| Risk assessment / FMEA drafting | **A** | High consequence; human sign-off still required |
 | Requirements authoring and decomposition | **A** | Missing requirement = missing machine function |
 | Cycle diagram / timing / motion-law design | **A** | Master document; cross-axis timing reasoning |
 | Station concept and layout (choosing the mechanism) | **A** | Spatial reasoning; architecture choice |

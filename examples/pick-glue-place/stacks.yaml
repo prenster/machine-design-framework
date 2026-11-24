@@ -1,0 +1,14 @@
+# Tolerance stack-ups. Contributors name their source; assumed ones reference a param (one source of truth).
+stacks:
+  - id: STK-REGISTRATION
+    requirement: REQ-PROC-001
+    text: "endsheet trailing edge to signature spine edge, along X"
+    target: {nominal: 0.0, tol: 0.3}
+    contributors:
+      - {name: "X axis repeatability (ELGA-TB-G-80)", tol: 0.08, dist: normal, source: "Festo datasheet 570503: +/-0.08 mm"}
+      - {name: "X following error at place (servo)", param: x_following_error_mm, dist: normal, source: "assumed, PT-10 bench axis"}
+      - {name: "sheet against edge stop on the vacuum plate", param: plate_registration_mm, dist: uniform, source: "assumed, PT-11 (was: sheet vs. stack fence +/-0.2 = 82% of variance, stack could not close)"}
+      - {name: "sheet shift on vacuum plate during transfer", param: sheet_shift_mm, dist: normal, source: "assumed; PROD-CARRY keeps accel under slip limit; PT-05"}
+      - {name: "signature against backstop (jogger)", tol: 0.10, dist: normal, source: "estimate; jogger holds signature square (CAM-JOGGER)"}
+      - {name: "backstop position vs. X reference (machining + assembly)", tol: 0.05, dist: normal, source: "drawing tolerance, to be set at G4"}
+      - {name: "fence position vs. X reference", tol: 0.05, dist: normal, source: "drawing tolerance, to be set at G4"}

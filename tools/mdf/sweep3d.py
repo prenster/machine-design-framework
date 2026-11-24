@@ -92,6 +92,7 @@ def run_3d(proj, out_dir: Path | None = None) -> list[CheckResult]:
     out_dir = out_dir or proj.root / "build"
     out_dir.mkdir(parents=True, exist_ok=True)
     _export(parts, out_dir)
+    pre = [_cad_assert(a3, parts)] if any(b.get("expect") for b in bodies) else []
 
     frames = a3["frames"]
     meshes = {b["id"]: _mesh(parts[b["id"]]) for b in bodies}
@@ -169,4 +170,32 @@ def run_3d(proj, out_dir: Path | None = None) -> list[CheckResult]:
                                    f"{len(meshes)} bodies, {len(pairs)} pairs x {len(frange(step))} steps @ {cph:g} cph, "
                                    f"{len(viol)} pairs in violation", details, speed=name,
                                    data={"worst": {k: v[0] for k, v in worst.items()}}))
-    return results
+    return pre + results
+
+
+def _cad_assert(a3, parts) -> CheckResult:
+    """Kernel measurements of each body against declared expectations (silent-failure screen)."""
+    issues, ok = [], 0
+    for b in a3["bodies"]:
+        exp = b.get("expect")
+        if not exp:
+            continue
+        part = parts[b["id"]]
+        tol = float(exp.get("tol_pct", 1.0)) / 100.0
+        bb = part.bounding_box()
+        size = [bb.size.X, bb.size.Y, bb.size.Z]
+        if "bbox_mm" in exp:
+            for axis, got, want in zip("XYZ", size, exp["bbox_mm"]):
+                if abs(got - want) > max(tol * abs(want), 0.01):
+                    issues.append(f"{b['id']}: bounding box {axis} {got:.2f} mm, expected {want} mm")
+        if "volume_mm3" in exp:
+            vol = part.volume
+            want = float(exp["volume_mm3"])
+            if abs(vol - want) > tol * want:
+                issues.append(f"{b['id']}: volume {vol:,.0f} mm3, expected {want:,.0f} mm3 "
+                              f"(missing or extra internal feature?)")
+        if "min_z_mm" in exp and abs(bb.min.Z - exp["min_z_mm"]) > 0.01:
+            issues.append(f"{b['id']}: lowest point z {bb.min.Z:.2f} mm, expected {exp['min_z_mm']} mm")
+        ok += 1
+    return CheckResult("CAD-ASSERT", FAIL if issues else PASS,
+                       f"{ok} bodies measured against declared expectations", issues)

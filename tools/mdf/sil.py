@@ -83,7 +83,8 @@ class Plant:
         self.glue_by_cycle: dict[int, float] = {}
         self.inject = scen.get("inject", [])
         self.inputs = {"xguardclosed": True, "xestopok": True, "xairok": True, "xglueready": True,
-                       "xstartpb": False, "xstoppb": False, "xresetpb": False}
+                       "xstartpb": False, "xstoppb": False, "xresetpb": False,
+                       "xsimdrivefaultx": False, "xsimdrivefaultz": False}
         self.events: list[tuple[float, str]] = []
 
     # -- geometry
@@ -112,10 +113,12 @@ class Plant:
         for inj in self.inject:
             if inj.get("cycle") == self.cycle and self.angle >= inj.get("angle", 0) and not inj.get("_fired"):
                 key = {"guard_open": "xguardclosed", "estop": "xestopok", "air_loss": "xairok",
-                       "glue_not_ready": "xglueready"}.get(inj["type"])
+                       "glue_not_ready": "xglueready", "drive_fault_x": "xsimdrivefaultx",
+                       "drive_fault_z": "xsimdrivefaultz"}.get(inj["type"])
                 if key:
-                    self.inputs[key] = False
-                    d[key] = False
+                    val = key.startswith("xsim")       # fault flags go TRUE, ok-signals go FALSE
+                    self.inputs[key] = val
+                    d[key] = val
                     inj["_fired"] = True
                     inj["_t"] = self.t
                     self.events.append((self.t, f"inject {inj['type']} at cycle {self.cycle} {self.angle:.1f} deg"))
@@ -317,8 +320,12 @@ def run_scenario(proj: Project, scen: dict, speed_name: str, cph: float, sources
 
 
 def plc_sources(proj: Project) -> dict[str, str]:
+    """generated + src + the SIL target only (other targets use vendor types outside the subset)."""
     root = proj.root / "plc"
-    return {str(f.relative_to(proj.root)): f.read_text() for f in sorted(root.rglob("*.st"))}
+    target = proj.data.get("sil", {}).get("target", "sim")
+    files = [f for f in sorted(root.rglob("*.st"))
+             if "targets" not in f.relative_to(root).parts or f.relative_to(root).parts[1] == target]
+    return {str(f.relative_to(proj.root)): f.read_text() for f in files}
 
 
 def run_sil(proj: Project) -> list[CheckResult]:

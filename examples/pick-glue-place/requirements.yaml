@@ -8,7 +8,7 @@ requirements:
     text: "Place the endsheet with its trailing edge within +/-0.3 mm of the signature registration point."
     category: process
     source: chief engineer
-    verification: {method: check, ref: PROD-PLACE}
+    verification: {method: check, ref: [PROD-PLACE, STK-REGISTRATION]}
   - id: REQ-PROC-002
     text: "Glue bead 3-7 mm from the trailing edge (+/-1 mm) at every production speed; no glue on the machine."
     category: process
@@ -82,6 +82,19 @@ requirements:
     text: "Air loss: controlled fault within 25 ms. Sheet drop on air loss is accepted only if the risk assessment accepts it."
     category: safety
     verification: {method: check, ref: SIL-AIR-LOSS}
+  - id: REQ-MECH-005
+    text: "The vacuum plate carries an edge stop that registers the endsheet trailing edge before transfer (STK-REGISTRATION depends on it)."
+    category: mechanical
+    rationale: "Stack-fence registration (+/-0.2 mm) could not close the +/-0.3 mm placement stack."
+    verification: {method: review}
+  - id: REQ-SAFE-003
+    text: "Every hazard is mitigated; every safety function has a design PL at or above its required PL, uses safety-rated devices and is validated by a SIL scenario."
+    category: safety
+    verification: {method: check, ref: SAFETY}
+  - id: REQ-REL-001
+    text: "Every failure mode with severity >= 9 or RPN >= 100 has a design action."
+    category: maintenance
+    verification: {method: check, ref: FMEA}
   - id: REQ-SAFE-001
     text: "Carrier travel zone fully guarded; guard interlock stops motion per the ISO 13849 performance level set by the risk assessment."
     category: safety

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Tolerance stacks",
+  "type": "object",
+  "required": ["stacks"],
+  "properties": {"stacks": {"type": "array", "items": {"type": "object", "required": ["id", "text", "target", "contributors"],
+    "properties": {
+      "id": {"type": "string", "pattern": "^STK-[A-Z0-9-]+$"},
+      "requirement": {"type": "string"}, "text": {"type": "string"},
+      "target": {"type": "object", "required": ["tol"], "properties": {"nominal": {"type": "number"}, "tol": {"type": "number"}}},
+      "contributors": {"type": "array", "minItems": 1, "items": {"type": "object", "required": ["name", "source"],
+        "properties": {"name": {"type": "string"}, "nominal": {"type": "number"}, "tol": {"type": "number"},
+          "param": {"type": "string"}, "dist": {"enum": ["normal", "uniform"]}, "sens": {"type": "number"},
+          "source": {"type": "string"}}}}}}}}
+}

@@ -2,12 +2,80 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "3D assembly for the collision sweep",
   "type": "object",
-  "required": ["cad", "frames", "bodies"],
+  "required": [
+    "cad",
+    "frames",
+    "bodies"
+  ],
   "properties": {
-    "cad": {"type": "string", "description": "build123d script; must define build(params) -> {body_id: Part}"},
-    "step_deg": {"type": "number"},
-    "frames": {"type": "object", "additionalProperties": {"type": "object", "properties": {"x": {"type": "string"}, "z": {"type": "string"}}}},
-    "bodies": {"type": "array", "items": {"type": "object", "required": ["id", "frame"], "additionalProperties": false,
-      "properties": {"id": {"type": "string"}, "frame": {"type": "string"}, "part": {"type": "string"}, "product": {"type": "boolean"}}}}
+    "cad": {
+      "type": "string",
+      "description": "build123d script; must define build(params) -> {body_id: Part}"
+    },
+    "step_deg": {
+      "type": "number"
+    },
+    "frames": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "string"
+          },
+          "z": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "bodies": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "frame"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "frame": {
+            "type": "string"
+          },
+          "part": {
+            "type": "string"
+          },
+          "product": {
+            "type": "boolean"
+          },
+          "expect": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "bbox_mm": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 3,
+                "maxItems": 3
+              },
+              "volume_mm3": {
+                "type": "number"
+              },
+              "min_z_mm": {
+                "type": "number"
+              },
+              "tol_pct": {
+                "type": "number"
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

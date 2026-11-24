@@ -1,0 +1,74 @@
+# Risk assessment draft (ISO 12100) with ISO 13849-1 risk graph. DRAFT for the chief engineer and a qualified
+# safety person. S: S1 slight/reversible, S2 serious/irreversible. F: F1 seldom/short, F2 frequent/long.
+# P: P1 possible to avoid, P2 scarcely possible.
+hazards:
+  - id: HZ-1
+    hazard: "crushing/shearing: vacuum plate descending onto signature at place"
+    location: place station
+    cycle_window: [195, 245]
+    persons: [operator, setter]
+    modes: [production, jam_clearing]
+    S: S2
+    F: F2
+    P: P1
+    mitigations:
+      - {type: guard, text: "interlocked guard enclosing carrier travel"}
+      - {type: safety_function, ref: SF-GUARD}
+  - id: HZ-2
+    hazard: "impact/crushing: X carriage travel (up to 4 m/s) against frame or uprights"
+    location: full X travel
+    persons: [operator, setter, maintenance]
+    modes: [production, setup]
+    S: S2
+    F: F2
+    P: P1
+    mitigations:
+      - {type: guard, text: "interlocked guard; safe reduced speed in setup"}
+      - {type: safety_function, ref: SF-GUARD}
+      - {type: safety_function, ref: SF-ESTOP}
+  - id: HZ-3
+    hazard: "drawing-in: X belt and pulleys"
+    location: X module ends
+    persons: [maintenance]
+    modes: [maintenance]
+    S: S2
+    F: F1
+    P: P1
+    mitigations:
+      - {type: inherent, text: "belt covered by the module's steel band; end caps"}
+      - {type: guard, text: "fixed guard over motor/kit, tool to remove"}
+  - id: HZ-4
+    hazard: "finger pinch: jogger push plate against signature/backstop"
+    location: place station
+    persons: [operator]
+    modes: [production, jam_clearing]
+    S: S1
+    F: F2
+    P: P1
+    mitigations:
+      - {type: inherent, text: "spring-return force-closed cam: jogger force limited to the spring (~56 N)"}
+      - {type: guard, text: "inside the interlocked guard"}
+  - id: HZ-5
+    hazard: "stored pneumatic energy: vacuum/blow-off and air after stop"
+    location: pneumatic supply
+    persons: [maintenance]
+    modes: [maintenance]
+    S: S1
+    F: F1
+    P: P2
+    mitigations:
+      - {type: inherent, text: "lockable soft-start/dump valve on AIR_PREP exhausts the system"}
+      - {type: information, text: "LOTO procedure"}
+safety_functions:
+  - id: SF-GUARD
+    text: "guard open -> SS1/STO on X, Z and camshaft drive; glue valve off; vacuum held (no sheet drop)"
+    pl_design: c
+    stop_category: 1
+    devices: [GUARD_SWITCH, DI1]
+    validated_by: [SIL-GUARD-MID-GLUE]
+  - id: SF-ESTOP
+    text: "e-stop -> STO/SS1 on all drives"
+    pl_design: d
+    stop_category: 1
+    devices: [ESTOP, SDI1]
+    validated_by: [SIL-ESTOP-IN-TRANSFER]

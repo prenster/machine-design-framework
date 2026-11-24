@@ -401,6 +401,18 @@ def run_all(proj: Project) -> list[CheckResult]:
     for fn in ALL_CHECKS:
         out.extend(fn(proj))
     out.extend(run_3d(proj))
+    from .cam import run_cams
+    from .policy import check_actuation
+    out.extend(run_cams(proj))
+    out.extend(check_actuation(proj))
+    from .stacks import run_stacks
+    out.extend(run_stacks(proj))
     out.extend(run_bom(proj))
     out.extend(run_sil(proj))
+    from .safety import check_safety, check_fmea
+    out.extend(check_safety(proj))
+    known = {r.check_id for r in out}
+    out.extend(check_fmea(proj, known))
+    from .integrity import check_lock
+    out.extend(check_lock(proj))
     return out

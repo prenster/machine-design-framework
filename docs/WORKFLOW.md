@@ -7,7 +7,7 @@ machine builders, scaled to a single chief engineer working with Claude.
 
 | Phase | Output | Tier | Gate (human decides) |
 |---|---|---|---|
-| **0. Process** | Product states, ports, tolerances; stock and adhesive range; target speed range; cheap coupon tests on real stock (friction, stiffness, glue open time) | A | **G0**: Process approved. Requirements frozen enough to design against |
+| **0. Intake + Process** | Spec intake (skill `mdf-intake`, `templates/SPEC_CHECKLIST.md`): sourced, quantified requirements and open questions. Then product states, ports, tolerances; stock and adhesive range; target speed range; cheap coupon tests on real stock (friction, stiffness, glue open time) | A | **G0**: Process approved. Requirements frozen enough to design against |
 | **1. Concept** | Station breakdown; mechanism choice per station; first cycle diagram; planar layout; `make verify` passing on the planar model; list of assumed parameters and their tests | A | **G1**: Concept approved. Cycle diagram is now the master |
 | **2. Functional models** | Cheap rigs proving each risky physical effect; calibrated params; holdout prediction checked | A design / B build docs | **G2**: Sim trusted for the regimes tested; risky effects proven |
 | **3. Detailed design** | 3D code-CAD, catalog selection, BOM, tolerance stacks, I/O list, schematics, PLC code, SIL (soft-PLC against sim), risk assessment | B build / A review | **G3**: Design review (gate-reviewer + human). Release for quotes |

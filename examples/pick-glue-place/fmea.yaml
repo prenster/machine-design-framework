@@ -1,0 +1,17 @@
+# Design FMEA draft. S severity, O occurrence, D detection (10 = undetectable). RPN = S x O x D.
+rpn_action_threshold: 100
+items:
+  - {id: FM-1, item: pick, failure_mode: "double sheet picked", effect: "two endsheets glued into a book; reject",
+     cause: "sheet-to-sheet adhesion, static, humidity", S: 7, O: 4, D: 2, detection: [SIL-DOUBLE-SHEET, PT-06]}
+  - {id: FM-2, item: pick, failure_mode: "no sheet picked", effect: "book without endsheet", cause: "empty stack, curl, leak",
+     S: 6, O: 5, D: 2, detection: [SIL-MISSED-PICK, SIL-STACK-EMPTY]}
+  - {id: FM-3, item: glue, failure_mode: "nozzle partially clogged: thin or missing bead", effect: "endsheet not tipped; found at casing-in or by the customer",
+     cause: "glue skin, dried adhesive at stops", S: 7, O: 5, D: 7, detection: [],
+     action: "add a bead-presence sensor after the glue pass (vision or capacitive) and a purge cycle at restart; becomes a requirement"}
+  - {id: FM-4, item: X axis, failure_mode: "belt stretch / pulley wear shifts placement", effect: "registration drift beyond +/-0.3 mm",
+     cause: "wear over service life", S: 6, O: 3, D: 6, detection: [STK-REGISTRATION, PT-10],
+     action: "periodic registration check in the maintenance plan; datasheet reference service life 5000 km"}
+  - {id: FM-5, item: vacuum plate, failure_mode: "face wear / leaks reduce hold force", effect: "sheet slips in transfer",
+     cause: "abrasion, paper dust", S: 6, O: 4, D: 4, detection: [SIL-MISSED-PICK, PROD-CARRY]}
+  - {id: FM-6, item: jogger, failure_mode: "cam follower seizure", effect: "signature not squared; registration loss", cause: "lubrication, contamination",
+     S: 6, O: 2, D: 6, detection: [CAM-JOGGER]}

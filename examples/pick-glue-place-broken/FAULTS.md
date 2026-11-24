@@ -20,3 +20,10 @@ any single file. `make verify-broken` must FAIL and name every one.
 | F13 | Guard switch wired to a standard input card | io_list.yaml | IO-MAP (safety device on non-safety input) |
 | F14 | Glue condition "simplified" in the PLC (no sheet check) | plc/src/MAIN.st | SIL-MISSED-PICK, SIL-STACK-EMPTY (glue on the machine) |
 | F15 | Cycle and I/O changed, PLC GVLs not regenerated | plc/generated | PLC-GEN |
+| F16 | Jogger cam with a 12 mm base circle "to save space" | cycle.yaml | CAM-JOGGER (undercut, pressure angle) |
+| F17 | Servo axes with no reason for not using a cam | cycle.yaml | ACT-POLICY |
+| F18 | Sheet registered only by the stack fence | stacks.yaml | STK-REGISTRATION (does not close even statistically) |
+| F19 | Guard safety function on a standard input card, design PL c for a PL d hazard | safety.yaml | SAFETY |
+| F20 | Clogged-nozzle failure mode (RPN 245) without action; detection pointing at a non-existent check | fmea.yaml | FMEA |
+| F21 | CAD bodies differ from the approved geometry expectations | cad/station.py | CAD-ASSERT |
+| F22 | A SIL expectation relaxed after approval so a failing scenario "passes" | sil.yaml | CHECK-LOCK |

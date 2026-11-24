@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Design FMEA",
+  "type": "object",
+  "required": ["items"],
+  "properties": {
+    "rpn_action_threshold": {"type": "integer"},
+    "items": {"type": "array", "items": {"type": "object", "required": ["id", "item", "failure_mode", "effect", "cause", "S", "O", "D"],
+      "properties": {"id": {"type": "string", "pattern": "^FM-[0-9]+$"}, "item": {"type": "string"},
+        "failure_mode": {"type": "string"}, "effect": {"type": "string"}, "cause": {"type": "string"},
+        "S": {"type": "integer", "minimum": 1, "maximum": 10}, "O": {"type": "integer", "minimum": 1, "maximum": 10},
+        "D": {"type": "integer", "minimum": 1, "maximum": 10},
+        "detection": {"type": "array", "items": {"type": "string"}}, "action": {"type": "string"}}}}
+  }
+}

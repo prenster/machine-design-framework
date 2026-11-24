@@ -5,6 +5,7 @@
 
    States:  0 IDLE   1 RUN   2 STOPPING (finish cycle, park)   9 FAULT
    Faults:  1 guard open  2 e-stop  3 air loss  4 repeated pick failure  5 double sheet  6 glue unit not ready
+            7 drive / motion error (from FB_Axis, any target)
 
    Safety: guard and e-stop are safety functions on the safety controller (STO/SS1 on the drives,
    safe output for valves as the risk assessment requires). This program mirrors them only for
@@ -29,6 +30,8 @@ VAR
     rtReset     : R_TRIG;
     tonAir      : TON;
     tonGlue     : TON;
+    fbX         : FB_Axis;   (* vendor-neutral axis adapters: see FB_Axis_Interface.md *)
+    fbZ         : FB_Axis;
 END_VAR
 
 rtStart(CLK := xStartPb);
@@ -36,6 +39,8 @@ rtStop(CLK := xStopPb);
 rtReset(CLK := xResetPb);
 tonAir(IN := NOT xAirOk, PT := AIR_LOSS_DEBOUNCE);
 tonGlue(IN := NOT xGlueReady, PT := GLUE_LOSS_DEBOUNCE);
+fbX(xEnable := xMasterRun, xSimFault := xSimDriveFaultX);
+fbZ(xEnable := xMasterRun, xSimFault := xSimDriveFaultZ);
 
 IF xFirstScan THEN
     rPrev := rAngle;
@@ -53,6 +58,9 @@ ELSIF NOT xGuardClosed AND iState <> 0 THEN
 ELSIF tonAir.Q AND iState <> 0 THEN
     iState := 9;
     iFaultCode := 3;
+ELSIF (fbX.xError OR fbZ.xError) AND iState <> 0 THEN
+    iState := 9;
+    iFaultCode := 7;
 END_IF;
 
 CASE iState OF

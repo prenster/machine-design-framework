@@ -26,6 +26,9 @@ OPTIONAL = {
     "io_list": "io_list.yaml",
     "assembly3d": "assembly3d.yaml",
     "sil": "sil.yaml",
+    "stacks": "stacks.yaml",
+    "safety": "safety.yaml",
+    "fmea": "fmea.yaml",
 }
 
 

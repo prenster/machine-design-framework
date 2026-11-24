@@ -1,0 +1,15 @@
+_note: Hashes of everything that defines what the checks demand. Regenerate ONLY after
+  the chief engineer approves a change to a check (`make lock P=...`), and say so
+  in the commit.
+sections:
+  cad.expectations: 05b8426b7a42cb96
+  cam.limits: 466a43c1e01d89a1
+  constraints: cdcdd129efb21ea3
+  layout.clearance: 9e556783b46d865c
+  layout.glue.spec: 5f9dffbc71441314
+  layout.ports: 102ddbaa5fe87bd8
+  params.requirement: e822f0f27eb36bb3
+  requirements: 900778a4dd2438ab
+  safety.plr: 426c0af34653270b
+  sil.expectations: 4f2b40b0b3cc53aa
+  stacks.targets: 63d0cee0db58ace5

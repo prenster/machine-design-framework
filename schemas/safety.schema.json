@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Risk assessment (ISO 12100) with ISO 13849-1 risk graph",
+  "type": "object",
+  "required": ["hazards"],
+  "properties": {
+    "hazards": {"type": "array", "items": {"type": "object", "required": ["id", "hazard", "S", "F", "P", "mitigations"],
+      "properties": {"id": {"type": "string", "pattern": "^HZ-[0-9]+$"}, "hazard": {"type": "string"},
+        "location": {"type": "string"}, "cycle_window": {"type": "array"}, "persons": {"type": "array"},
+        "modes": {"type": "array", "items": {"enum": ["production", "setup", "cleaning", "maintenance", "jam_clearing"]}},
+        "S": {"enum": ["S1", "S2"]}, "F": {"enum": ["F1", "F2"]}, "P": {"enum": ["P1", "P2"]},
+        "mitigations": {"type": "array", "items": {"type": "object", "required": ["type"], "properties": {
+          "type": {"enum": ["inherent", "guard", "safety_function", "information"]}, "ref": {"type": "string"}, "text": {"type": "string"}}}}}}},
+    "safety_functions": {"type": "array", "items": {"type": "object", "required": ["id", "text", "devices"],
+      "properties": {"id": {"type": "string", "pattern": "^SF-[A-Z0-9-]+$"}, "text": {"type": "string"},
+        "pl_design": {"enum": ["a", "b", "c", "d", "e"]}, "stop_category": {"enum": [0, 1, 2]},
+        "devices": {"type": "array", "items": {"type": "string"}}, "validated_by": {"type": "array", "items": {"type": "string"}}}}}
+  }
+}

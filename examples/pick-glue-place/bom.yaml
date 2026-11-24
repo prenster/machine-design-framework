@@ -171,6 +171,48 @@ parts:
     ports:
       - {name: air_in, type: tube_in, spec: {od_mm: 6}, required: true}
       - {name: vac_out, type: tube_out, spec: {od_mm: 6}, required: true}
+  # ---------------- signature jogger (mechanical cam) ----------------
+  - id: CAM_JOG
+    description: "Plate cam, jogger, 15 mm thick, through-hardened 4140 (profile: build/cams/jogger.dxf)"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Cam profile is the motion law; generated from cycle.yaml"
+    fidelity: {specs: estimate, geometry: estimate}
+    unverified: [allowable_hertz_mpa (material and hardness to confirm)]
+    specs: {width_mm: 15, e_modulus_gpa: 205, allowable_hertz_mpa: 1100, material: "4140 through-hardened"}
+  - id: CAM_FOLLOWER_JOG
+    description: "IKO CF10 cam follower, 22 mm OD, 12 mm wide, M10 stud"
+    category: cam_follower
+    qty: 1
+    source: catalog
+    vendor: IKO Nippon Thompson
+    part_number: "CF10 (sealed variant per environment)"
+    moves_with: jogger
+    fidelity: {specs: datasheet, geometry: estimate}
+    evidence:
+      - {url: "https://ondrives.com/cf10uu", note: "C 5430 N, C0 6890 N, track load capacity 4680 N, 45 g, width 12", accessed: "2026-11-23"}
+      - {url: "https://uk.rs-online.com/web/p/cam-followers/1251208", note: "IKO CF10: 22 mm OD, C 5430 N", accessed: "2026-11-23"}
+    unverified: [max_speed_rpm]
+    specs: {outer_diameter_mm: 22, width_mm: 12, dynamic_load_rating_n: 5430, static_load_rating_n: 6890,
+            track_load_capacity_n: 4680, e_modulus_gpa: 208, mass_kg: 0.045, max_speed_rpm: 6000}
+  - id: JOGGER_SLIDE
+    description: "Jogger slide on miniature linear guide, with push plate"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Format-specific push plate"
+    moves_with: jogger
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {mass_kg: 0.5}
+  - id: CAMSHAFT_DRIVE
+    description: "Station camshaft drive: servo gearmotor synchronised to the virtual master (electronic line shaft)"
+    category: servo_motor
+    qty: 1
+    source: catalog
+    vendor: SEW-EURODRIVE
+    fidelity: {specs: estimate, geometry: estimate}
+    specs: {rated_torque_nm: 10, peak_torque_nm: 30}
   # ---------------- glue ----------------
   - id: GLUE_VALVE
     fidelity: {specs: estimate, geometry: estimate}

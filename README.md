@@ -31,7 +31,9 @@ Read [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) for the reasoning.
 pip install -r requirements.txt
 make verify          # example station: PASS (physical tests still pending)
 make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
+make hooks           # once per clone: install the claim-contract pre-commit hook
 make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
+make lock P=<dir>    # chief engineer only: approve the current check definitions
 PYTHONPATH=tools python3 -m mdf verify <dir> --gate G3   # enforce what detailed design requires
 ```
 
@@ -57,6 +59,10 @@ signature. Carrier and sheet at pick (blue), glue (orange) and place (green); da
 | Electrical | I/O channels, voltage/current vs card ratings, safety devices on safety inputs |
 | PLC | Generated timing/I-O lists in sync; the **real Structured Text program** run scan-by-scan against the plant with fault injection (missed pick, empty stack, double sheet, guard, e-stop, air loss) |
 | Trace | Every requirement verified by a check, test or review; every PASS lists the unmeasured numbers it rests on |
+| Cams | Mechanical plate cams designed from the same motion law: pressure angle, undercut, Hertz, follower jump, roller life, camshaft torque; DXF/STEP export |
+| Tolerances | Worst case, RSS and Monte Carlo stack-ups with the biggest contributors ranked |
+| Safety / reliability | ISO 13849-1 risk graph bookkeeping, safety functions validated by SIL scenarios; FMEA with action thresholds |
+| Integrity | Claim contract (no commit on stale or failed verify), check lock (no silent weakening of checks), CAD kernel assertions |
 | Fidelity | Every part/number marked estimate → datasheet → vendor STEP → measured, with sources; unknowns reported as NOT VERIFIED; a ranked **human action queue** (download, look up, test, review, quote) on every run |
 
 See [`docs/VERIFICATION.md`](docs/VERIFICATION.md) for the trust ladder and what **no** check covers.
@@ -76,6 +82,9 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | [`docs/WORKFLOW.md`](docs/WORKFLOW.md) | Phases, gates G0-G5, working session, repo layout for a real machine |
 | [`docs/MODEL_TIERS.md`](docs/MODEL_TIERS.md) | Which model for which task |
 | [`docs/VERIFICATION.md`](docs/VERIFICATION.md) | What the checks prove and don't |
+| [`docs/PRIOR_ART.md`](docs/PRIOR_ART.md) | What others tried, how AI design fails, and the countermeasures here |
+| [`docs/ACTUATION.md`](docs/ACTUATION.md) | Cam > servo > pneumatic: why, and where to push back |
+| [`templates/SPEC_CHECKLIST.md`](templates/SPEC_CHECKLIST.md) | Spec intake checklist (start here for a new machine) |
 | [`docs/FIDELITY.md`](docs/FIDELITY.md) | Fidelity ladder, human action queue, gate enforcement |
 | [`docs/ANALOGY.md`](docs/ANALOGY.md) | Where the software analogy holds and where it breaks |
 | [`docs/PHYSICAL_TESTS.md`](docs/PHYSICAL_TESTS.md) | Cheap real-world tests, calibration loop |
@@ -88,6 +97,14 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | `tools/mdf/` | Verification toolchain |
 | `examples/` | Passing example (with `cad/`, `plc/`, BOM, I/O, SIL scenarios) and deliberately broken copy (`FAULTS.md`) |
 | `templates/` | How to start a new station |
+
+## Starting a new machine
+
+1. Give Claude the spec document; it runs the `mdf-intake` skill: sourced, quantified requirements and a list of questions.
+2. `PYTHONPATH=tools python3 -m mdf new machines/<machine>/stations/<station>` scaffolds a station project.
+3. Work through `docs/WORKFLOW.md` gates; `make verify` after every change; the action queue says what a human needs to do.
+
+![Jogger plate cam generated from the cycle motion law](docs/img/cam_jogger.png)
 
 ## The example's parts
 

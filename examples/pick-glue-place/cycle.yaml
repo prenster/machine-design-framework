@@ -3,6 +3,7 @@
 # This file generates the PLC cam tables (MOVIKIT Camming / SoftMotion) and drives the simulation.
 # Change motion HERE, never in PLC code.
 machine_angle: "0 deg = carrier parked at pick port, vacuum off"
+actuation_preference: [mechanical_cam, servo, pneumatic]
 
 axes:
   x_transfer:
@@ -11,6 +12,7 @@ axes:
     drive: "SEW MOVI-C servo + belt-driven linear module (catalog)"
     module: X_MODULE
     motor: X_MOTOR
+    actuation_reason: "600 mm stroke with a constant-velocity glue segment: a plate cam would be ~1.3 m across; a cam-driven linkage/rack is possible but heavier and format-locked"
     vmax: x_vmax_mm_s
     amax: x_amax_mm_s2
     segments:
@@ -29,6 +31,7 @@ axes:
     module: Z_MODULE
     motor: Z_MOTOR
     rides_on: x_transfer
+    actuation_reason: "rides on the X carriage; a cam would need a moving camshaft or a stationary barrel cam + track along 600 mm. Revisit if X becomes a cam-driven linkage"
     vmax: z_vmax_mm_s
     amax: z_amax_mm_s2
     segments:
@@ -45,6 +48,30 @@ axes:
       - {law: dwell,     from: 265, to: 330, at: 15}
       - {law: cycloidal, from: 330, to: 360, s0: 15, s1: 0}
 
+  jogger:
+    type: mechanical_cam
+    unit: mm
+    drive: "plate cam on the station camshaft, IKO CF10 roller, spring return"
+    vmax: 500
+    amax: 20000
+    cam:
+      follower: translating_roller
+      base_radius_mm: 45
+      offset_mm: 0
+      closure: force
+      spring: {rate_n_per_mm: 2.0, preload_n: 40}
+      external_load_n: 15
+      roller_part: CAM_FOLLOWER_JOG
+      cam_part: CAM_JOG
+      driven_by: CAMSHAFT_DRIVE
+      limits: {pressure_angle_deg: 30, curvature_ratio_min: 2.0, jump_margin_n: 10, roller_life_h: 20000}
+    segments:
+      - {law: dwell,     from: 0,   to: 150, at: 0,  note: "retracted"}
+      - {law: cycloidal, from: 150, to: 190, s0: 0, s1: 8, note: "push signature against the backstop"}
+      - {law: dwell,     from: 190, to: 245, at: 8,  note: "hold square during place and press"}
+      - {law: cycloidal, from: 245, to: 285, s0: 8, s1: 0, note: "spring return"}
+      - {law: dwell,     from: 285, to: 360, at: 0}
+
 park_angle: 355
 
 sensors:
@@ -53,12 +80,14 @@ sensors:
 
 valves:
   vacuum:
+    kind: vacuum
     device: "vacuum generator + blow-off (catalog, e.g. Schmalz/Piab compact ejector)"
     "on": 10
     "off": 222
     on_delay: vac_on_delay_ms
     off_delay: vac_off_delay_ms
   glue_gun:
+    kind: glue
     device: "cold-glue jet valve (catalog)"
     "on": 128.64
     "off": 130.4

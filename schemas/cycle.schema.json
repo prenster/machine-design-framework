@@ -115,6 +115,82 @@
           "rides_on": {
             "type": "string",
             "description": "axis this axis is mounted on (its moving mass counts there)"
+          },
+          "actuation_reason": {
+            "type": "string"
+          },
+          "cam": {
+            "type": "object",
+            "required": [
+              "follower",
+              "base_radius_mm",
+              "closure"
+            ],
+            "properties": {
+              "follower": {
+                "enum": [
+                  "translating_roller"
+                ]
+              },
+              "base_radius_mm": {
+                "type": "number"
+              },
+              "roller_radius_mm": {
+                "type": "number"
+              },
+              "offset_mm": {
+                "type": "number"
+              },
+              "closure": {
+                "enum": [
+                  "force",
+                  "form"
+                ]
+              },
+              "spring": {
+                "type": "object",
+                "properties": {
+                  "rate_n_per_mm": {
+                    "type": "number"
+                  },
+                  "preload_n": {
+                    "type": "number"
+                  }
+                }
+              },
+              "external_load_n": {
+                "type": "number"
+              },
+              "follower_mass_kg": {
+                "type": "number"
+              },
+              "roller_part": {
+                "type": "string"
+              },
+              "cam_part": {
+                "type": "string"
+              },
+              "driven_by": {
+                "type": "string"
+              },
+              "limits": {
+                "type": "object",
+                "properties": {
+                  "pressure_angle_deg": {
+                    "type": "number"
+                  },
+                  "curvature_ratio_min": {
+                    "type": "number"
+                  },
+                  "jump_margin_n": {
+                    "type": "number"
+                  },
+                  "roller_life_h": {
+                    "type": "number"
+                  }
+                }
+              }
+            }
           }
         }
       }
@@ -155,6 +231,18 @@
           },
           "note": {
             "type": "string"
+          },
+          "kind": {
+            "enum": [
+              "vacuum",
+              "glue",
+              "blow_off",
+              "pneumatic_actuator",
+              "other"
+            ]
+          },
+          "actuation_reason": {
+            "type": "string"
           }
         }
       }
@@ -181,6 +269,16 @@
     },
     "park_angle": {
       "type": "number"
+    },
+    "actuation_preference": {
+      "type": "array",
+      "items": {
+        "enum": [
+          "mechanical_cam",
+          "servo",
+          "pneumatic"
+        ]
+      }
     }
   }
 }

@@ -1,0 +1,13 @@
+stacks:
+  - id: STK-REGISTRATION
+    requirement: REQ-PROC-001
+    text: "endsheet trailing edge to signature spine edge, along X"
+    target: {nominal: 0.0, tol: 0.3}
+    contributors:
+      - {name: "X axis repeatability", tol: 0.08, source: "datasheet"}
+      - {name: "X following error", tol: 0.05, source: "assumed"}
+      - {name: "sheet position on stack vs. front fence", tol: 0.2, dist: uniform, source: "assumed"}
+      - {name: "sheet shift on plate", tol: 0.05, source: "assumed"}
+      - {name: "signature against backstop", tol: 0.1, source: "estimate"}
+      - {name: "backstop position", tol: 0.05, source: "drawing"}
+      - {name: "fence position", tol: 0.05, source: "drawing"}

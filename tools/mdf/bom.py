@@ -202,6 +202,8 @@ def check_sizing(proj: Project) -> list[CheckResult]:
     results = []
     for aid, spec in proj.cycle["axes"].items():
         mod, mot = parts.get(spec.get("module")), parts.get(spec.get("motor"))
+        if spec.get("type") == "mechanical_cam":
+            continue      # sized by CAM-<axis>
         if not (mod and mot):
             results.append(CheckResult("BOM-SIZING", WARN, f"axis {aid}: no module/motor in cycle.yaml, not sized"))
             continue

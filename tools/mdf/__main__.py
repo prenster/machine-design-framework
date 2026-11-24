@@ -25,7 +25,43 @@ def main(argv=None) -> int:
                    help="enforce fidelity/actions required for this gate")
     g = sub.add_parser("plc", help="regenerate PLC GVLs from cycle.yaml / io_list.yaml")
     g.add_argument("project")
+    lk = sub.add_parser("lock", help="approve current check definitions (chief engineer only)")
+    lk.add_argument("project")
+    nw = sub.add_parser("new", help="scaffold a station project from the reference example")
+    nw.add_argument("dest")
+    cc = sub.add_parser("claimcheck", help="fail unless the last verify is current and not FAIL")
+    cc.add_argument("projects", nargs="+")
     args = ap.parse_args(argv)
+
+    if args.cmd == "new":
+        import shutil
+        src = Path(__file__).resolve().parents[2] / "examples" / "pick-glue-place"
+        dest = Path(args.dest)
+        if dest.exists():
+            print(f"{dest} exists; refusing to overwrite")
+            return 2
+        shutil.copytree(src, dest, ignore=shutil.ignore_patterns("build", "checks.lock", "__pycache__"))
+        (dest / "intake").mkdir(exist_ok=True)
+        (dest / "intake" / "QUESTIONS.md").write_text("# Open questions\n\n(filled by the mdf-intake skill)\n")
+        (dest / "README.md").write_text(
+            "# New station (scaffolded from examples/pick-glue-place)\n\n"
+            "Every file still describes the reference example. Replace them in the order in\n"
+            "templates/README.md, starting from the intake (skill mdf-intake). Until then, treat\n"
+            "everything here as placeholder. No checks.lock yet: run `make lock` after approval.\n")
+        print(f"scaffolded {dest}")
+        return 0
+    if args.cmd == "lock":
+        from .integrity import write_lock
+        print(f"wrote {write_lock(load(args.project))}")
+        return 0
+    if args.cmd == "claimcheck":
+        from .integrity import claimcheck
+        bad = 0
+        for pdir in args.projects:
+            ok, msg = claimcheck(Path(pdir))
+            print(("OK   " if ok else "STOP ") + msg)
+            bad += not ok
+        return 1 if bad else 0
 
     if args.cmd == "plc":
         from . import plcgen
@@ -51,6 +87,9 @@ def main(argv=None) -> int:
     if blocking:
         verdict = "FAIL"
     (out / "report.md").write_text(markdown(proj, results, trace, audit, actions, args.gate, verdict))
+    from .integrity import write_verify_record
+    (proj.root / "build").mkdir(exist_ok=True)
+    write_verify_record(proj.root, proj.root / "build", verdict, results)   # claim record always lives with the project
     side_view_svg(proj, out / "side_view.svg")
     if "assembly3d" in proj.data:
         try:

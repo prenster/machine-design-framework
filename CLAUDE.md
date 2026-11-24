@@ -47,7 +47,15 @@ Then read `docs/PHILOSOPHY.md` once per session.
     reported as NOT VERIFIED, never filled in to make a check pass. See `docs/FIDELITY.md`.
 13. **When the software analogy doesn't fit, say so** (`docs/ANALOGY.md`): models are not the machine,
     parts vary, iteration costs money, and irreversible steps belong to a human.
-14. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
+14. **Claim contract.** You may say "done", "passes", "fits" or "works" only after `make verify` has run on the
+    exact files you are claiming about, and you quote its verdict. Install the hook once per clone (`make hooks`);
+    it refuses commits whose last verify is stale or FAIL. (Why: docs/PRIOR_ART.md.)
+15. **Never run `make lock` on your own.** `checks.lock` protects every check definition. If CHECK-LOCK fails,
+    restore the check, or show the chief engineer the diff and let them approve and lock it.
+16. **Actuation preference** (`docs/ACTUATION.md`): mechanical cam > servo > pneumatic by default. Anything else
+    carries an `actuation_reason`. Push back when a cam is the wrong tool; say why.
+17. **Intake before design.** A new machine or changed spec goes through the `mdf-intake` skill first.
+18. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
     speed. Valve and sensor delays are fixed in milliseconds, so they shift in degrees as speed changes.
 
 ## 3. Definition of done (any design change)
@@ -81,6 +89,7 @@ gate reviewer re-examines it.
 
 | Skill | Use for |
 |---|---|
+| `mdf-intake` | Turn a spec document into quantified, sourced requirements and open questions (first, always) |
 | `mdf-process` | Product states, ports, tolerances, what physically happens to the product |
 | `mdf-cycle` | Timing diagram, motion laws, valve timing, speed range |
 | `mdf-mechanical` | Code-CAD, catalog selection, layout geometry, BOM |

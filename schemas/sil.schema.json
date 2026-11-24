@@ -2,18 +2,80 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Software-in-the-loop scenarios",
   "type": "object",
-  "required": ["scan_ms", "program", "scenarios"],
+  "required": [
+    "scan_ms",
+    "program",
+    "scenarios"
+  ],
   "properties": {
-    "scan_ms": {"type": ["number", "string"]},
-    "program": {"type": "string"},
-    "sources": {"type": "array", "items": {"type": "string"}},
-    "scenarios": {"type": "array", "items": {"type": "object", "required": ["id", "text", "cycles", "expect"], "additionalProperties": false,
-      "properties": {
-        "id": {"type": "string", "pattern": "^SIL-[A-Z0-9-]+$"},
-        "text": {"type": "string"},
-        "speeds": {"type": "array", "items": {"enum": ["min", "nom", "max"]}},
-        "cycles": {"type": "integer", "minimum": 1},
-        "stack": {"type": "integer"},
-        "inject": {"type": "array", "items": {"type": "object", "required": ["type"]}},
-        "expect": {"type": "object"}}}}}
+    "scan_ms": {
+      "type": [
+        "number",
+        "string"
+      ]
+    },
+    "program": {
+      "type": "string"
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "scenarios": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "text",
+          "cycles",
+          "expect"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^SIL-[A-Z0-9-]+$"
+          },
+          "text": {
+            "type": "string"
+          },
+          "speeds": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "min",
+                "nom",
+                "max"
+              ]
+            }
+          },
+          "cycles": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "stack": {
+            "type": "integer"
+          },
+          "inject": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": [
+                "type"
+              ]
+            }
+          },
+          "expect": {
+            "type": "object"
+          }
+        }
+      }
+    },
+    "target": {
+      "type": "string"
+    }
+  }
 }

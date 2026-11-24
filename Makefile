@@ -1,13 +1,23 @@
 P ?= examples/pick-glue-place
 PY ?= python3
 
-.PHONY: verify verify-broken install all plc
+.PHONY: verify verify-broken install all plc lock hooks claimcheck
 
 install:
 	$(PY) -m pip install -r requirements.txt
 
 verify:
 	PYTHONPATH=tools $(PY) -m mdf verify $(P)
+
+lock:
+	@echo "Approving current check definitions for $(P). Only the chief engineer does this."
+	PYTHONPATH=tools $(PY) -m mdf lock $(P)
+
+hooks:
+	git config core.hooksPath .githooks
+
+claimcheck:
+	PYTHONPATH=tools $(PY) -m mdf claimcheck $(P)
 
 plc:
 	PYTHONPATH=tools $(PY) -m mdf plc $(P)

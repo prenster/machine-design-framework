@@ -21,6 +21,9 @@ params:
                            note: "carrier acceleration at which the sheet shifts on the vacuum plate"}
   sizing_torque_margin: {value: 1.25, unit: "-", source: requirement, note: "required torque x this <= motor rating"}
   plc_scan_ms:          {value: 1.0,  unit: ms, source: requirement, note: "PLC task cycle; output timing resolution"}
+  x_following_error_mm:  {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-10, note: "servo following error at place, 3 sigma"}
+  plate_registration_mm: {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-11, note: "sheet trailing edge against the plate edge stop (replaces stack-fence registration, +/-0.2)"}
+  sheet_shift_mm:        {value: 0.05, unit: mm, source: assumed, calibrated_by: PT-05, note: "sheet movement on the plate below the slip limit"}
   sheet_thickness_mm: {value: 0.15, unit: mm, source: measured, note: "caliper, 10 sheets, both stocks"}
 
   # --- flexible sheet (SHEET-DYN). Per unit width. ---

@@ -46,6 +46,17 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 | FR-036a | `--gate` enforcement of fidelity requirements per gate | done |
 | FR-037a | Assumptions guarded against datasheet values (constraint rules) | done |
 | FR-038a | Vendor STEP import into the 3D sweep (cad/vendor/) | roadmap |
+| FR-050 | Claim contract: verify record with input hashes; pre-commit refuses stale/failed claims | done |
+| FR-051 | Check lock: every check definition hashed; changes fail until approved | done |
+| FR-052 | CAD kernel assertions per body | done |
+| FR-053 | Mechanical plate cam design checks and profile export (translating roller) | done; oscillating follower, barrel/groove cams roadmap |
+| FR-054 | Actuation policy with reasons | done |
+| FR-055 | Tolerance stack-ups: worst case, RSS, Monte Carlo | done |
+| FR-056 | Risk assessment (ISO 13849-1 risk graph) and FMEA structure checks | done (bookkeeping) |
+| FR-057 | Vendor-neutral PLC axis adapter (sim / SoftMotion reference / MOVIKIT to fill) with drive-fault SIL | done (sim), others reference |
+| FR-058 | Spec intake skill, checklist, project scaffold (`mdf new`) | done |
+| FR-059 | Generalise layout schema beyond carrier pick-and-place (multi-station, rotary, conveyors) | roadmap |
+| FR-060 | Main-shaft/camshaft drive sizing from summed cam torques | roadmap |
 
 ## Process and roles
 

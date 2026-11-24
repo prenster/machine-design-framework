@@ -48,6 +48,27 @@ axes:
       - {law: dwell,     from: 265, to: 330, at: 15}
       - {law: cycloidal, from: 330, to: 360, s0: 15, s1: 0}
 
+  jogger:
+    type: mechanical_cam
+    unit: mm
+    vmax: 500
+    amax: 20000
+    cam:
+      follower: translating_roller
+      base_radius_mm: 12
+      roller_radius_mm: 11
+      closure: force
+      spring: {rate_n_per_mm: 2.0, preload_n: 5}
+      external_load_n: 15
+      follower_mass_kg: 0.6
+      limits: {pressure_angle_deg: 30, curvature_ratio_min: 2.0, jump_margin_n: 10}
+    segments:
+      - {law: dwell,     from: 0,   to: 150, at: 0}
+      - {law: cycloidal, from: 150, to: 165, s0: 0, s1: 8}
+      - {law: dwell,     from: 165, to: 245, at: 8}
+      - {law: cycloidal, from: 245, to: 260, s0: 8, s1: 0}
+      - {law: dwell,     from: 260, to: 360, at: 0}
+
 park_angle: 355
 
 sensors:

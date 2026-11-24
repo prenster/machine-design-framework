@@ -74,10 +74,18 @@ tests:
     status: planned
   - id: PT-10
     title: "Bench axis: real X drive train running the generated cam"
+    calibrates: [x_following_error_mm]
     purpose: "Unit test of one real axis before integration: following error, motor current vs. BOM-SIZING prediction, belt behaviour. Parts are reused in the machine."
     method: "ELGA-TB-G-80 + CM3C63L + MOVIDRIVE axis module + MOVI-C controller on a bench frame with a dummy payload equal to the predicted moving mass. Run the X cam table at 1500/2400/3000 cph; log following error and torque via MOVISUITE scope; export CSV into tests/data/."
     equipment: [X axis drive train from the BOM, MOVI-C controller, dummy payload]
     est_cost_usd: 0
-    acceptance: "following error at place < 0.1 mm; peak/RMS torque within 15% of BOM-SIZING prediction"
-    holdout: true
+    acceptance: "following error at place < 0.1 mm; peak/RMS torque within 15% of BOM-SIZING prediction (holdout for BOM-SIZING)"
+    status: planned
+  - id: PT-11
+    title: "Sheet registration against the plate edge stop"
+    purpose: "Calibrates plate_registration_mm, the largest contributor to STK-REGISTRATION."
+    calibrates: [plate_registration_mm]
+    method: "Mock-up plate with edge stop; pick 200 sheets per stock; measure trailing-edge position relative to the stop with a dial indicator / camera grid. Also record any sheets that miss the stop."
+    equipment: [kinematic mock-up, dial indicator]
+    est_cost_usd: 0
     status: planned

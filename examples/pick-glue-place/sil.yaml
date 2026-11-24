@@ -1,6 +1,7 @@
 # Software-in-the-loop scenarios: the real ST program (plc/) against the plant model.
 scan_ms: plc_scan_ms
 program: MAIN
+target: sim
 scenarios:
   - id: SIL-NOMINAL
     text: "Production run: every sheet glued in spec and placed on register"
@@ -39,3 +40,8 @@ scenarios:
     cycles: 4
     inject: [{type: air_loss, cycle: 1, angle: 170}]
     expect: {stop_within_ms: 21.5, glue_on_machine_mm_max: 0, dropped_max: 1, final_state: FAULT, fault_code: 3}
+  - id: SIL-DRIVE-FAULT
+    text: "X drive faults mid-transfer: master and glue off within one scan, sheet held, fault 7"
+    cycles: 4
+    inject: [{type: drive_fault_x, cycle: 1, angle: 160}]
+    expect: {stop_within_ms: 1.5, dropped_max: 0, glue_on_machine_mm_max: 0, final_state: FAULT, fault_code: 7}

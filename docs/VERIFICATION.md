@@ -30,13 +30,22 @@ is making the checks cover what matters, and being honest about what they don't.
 | Controls | **PLC-GEN** | Generated GVLs (timing, I/O) match cycle.yaml / io_list.yaml | hash compare |
 | | **PLC-COMPILE** | The Structured Text parses and links | IEC 61131-3 ST subset → Python transpiler |
 | | **SIL-*** | The **actual ST program** runs against the plant model at real scan time, with fault injection: production, missed pick, empty stack, double sheet, guard, e-stop, air loss | scan-by-scan co-simulation |
+| Cams | **CAM-&lt;axis&gt;** | Plate cam from the cycle motion law: pressure angle, curvature/undercut, Hertz stress, follower jump, roller speed/track load/L10 life, camshaft torque; exports DXF/CSV/STEP | analytic, validated against hand calculation |
+| Policy | **ACT-POLICY** | Cam > servo > pneumatic; every exception carries a reason | rule |
+| Tolerances | **STK-*** | Worst case, RSS and Monte Carlo (Cpk, ppm) per stack; ranked contributors | statistics |
+| Safety | **SAFETY** | ISO 13849-1 risk graph PLr per hazard; mitigations; safety-function PL, safety-rated devices, SIL validation exists | bookkeeping |
+| Reliability | **FMEA** | RPN, severity ≥ 9 / RPN ≥ threshold need actions; detection references exist | bookkeeping |
+| Integrity | **CAD-ASSERT** | Kernel-measured bounding box, volume and position of declared bodies (silent-failure screen) | build123d kernel |
+| | **CHECK-LOCK** | No check definition changed without the chief engineer's approval | hashes |
+| | claim contract | Pre-commit hook refuses commits whose last verify is stale or FAIL | hashes |
 | Trace | traceability / assumption audit | Every requirement has a check, test or review; every PASS lists the unmeasured numbers it depends on | report |
 
 ## Demonstration
 
-`examples/pick-glue-place` passes everything (physical tests pending). `examples/pick-glue-place-broken`
-contains **15 planted faults** (see its `FAULTS.md`): 4 timing mistakes, 1 flexible-sheet, 3 that
-exist only in 3D, 5 BOM/electrical, 2 PLC. Every one is caught and named. CI runs both on every push.
+`examples/pick-glue-place` has no FAIL (WARN where values are still unverified; physical tests pending).
+`examples/pick-glue-place-broken` contains **22 planted faults** (see its `FAULTS.md`) across timing, flexible
+sheet, 3D, BOM/electrical, PLC, cams, actuation policy, tolerance stacks, safety, FMEA, CAD geometry and a
+check weakened after approval. Every one is caught and named. CI runs both on every push.
 
 While the example was being built, the checks also caught **five real errors in the first drafts**:
 
@@ -47,6 +56,11 @@ While the example was being built, the checks also caught **five real errors in 
 5. touching contacts misreported as interference: a bug in the checker itself, found by looking at results that didn't make physical sense
 
 The fixes went into the design, except #5, which was fixed in the checker and is covered by the broken example.
+Later additions found more, all fixed in the design: the real Festo axis is rated 50 m/s² against a 53 m/s²
+cycle; the X motor's inertia ratio was 10.2:1; the ejector's evacuation table made a 15 ms vacuum assumption
+impossible; the jogger cam's curvature ratio was 1.97 against a 2.0 target; and the ±0.3 mm placement could
+not close (Cpk 0.78) while the sheet was registered on the stack fence, so registration moved to the plate.
+The FMEA also exposed an undetected failure mode (clogged glue nozzle, RPN 245) that becomes a sensor requirement.
 
 ## Trust ladder
 
@@ -60,7 +74,7 @@ The fixes went into the design, except #5, which was fixed in the checker and is
 | L5 | BOM interfaces, sizing, budgets, I/O | done | As good as the specs entered; specs must come from datasheets |
 | L6 | PLC software-in-the-loop with fault injection | done | Good for logic, sequencing, scan timing; axes follow the cam exactly (no drive dynamics), no fieldbus latency |
 | L7 | Flexible sheet dynamics | done (beam model) | **Low until calibrated** (PT-08, PT-09); no aeroelastic flutter |
-| L8 | Tolerance stack-ups (worst case + Monte Carlo) | roadmap | |
+| L8 | Tolerance stack-ups (worst case, RSS, Monte Carlo) | done | Only as good as the contributor list (TIER-A + review) |
 | L9 | Real controller in the loop (CODESYS soft-PLC / MOVI-C bench axis) | roadmap / bench | |
 | L10 | Physical tests and holdout predictions | process in `tests.yaml` | Ground truth |
 
