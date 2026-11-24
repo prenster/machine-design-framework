@@ -17,7 +17,8 @@ TYPES = {"BOOL": "BOOL", "INT": "INT", "REAL": "REAL"}
 
 
 def _hash(path: Path) -> str:
-    return hashlib.sha256(path.read_bytes()).hexdigest()[:16]
+    # normalise line endings: Windows checkouts may use CRLF; the fingerprint must not depend on the OS
+    return hashlib.sha256(path.read_bytes().replace(b"\r\n", b"\n")).hexdigest()[:16]
 
 
 def gvl_cycle(proj: Project) -> str:

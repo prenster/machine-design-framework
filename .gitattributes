@@ -1,0 +1,5 @@
+# Keep text files LF on every OS: generated-file fingerprints and locks hash file contents.
+* text=auto eol=lf
+*.png binary
+*.step binary
+*.glb binary

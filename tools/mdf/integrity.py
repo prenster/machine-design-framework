@@ -30,8 +30,8 @@ def inputs_hash(root: Path) -> str:
     for f in files:
         if f.name == "checks.lock":
             continue
-        h.update(str(f.relative_to(root)).encode())
-        h.update(f.read_bytes())
+        h.update(f.relative_to(root).as_posix().encode())
+        h.update(f.read_bytes().replace(b"\r\n", b"\n"))
     return h.hexdigest()
 
 
