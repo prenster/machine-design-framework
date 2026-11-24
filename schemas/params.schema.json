@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Station parameters",
+  "description": "Every number the design and simulation depend on, with where it came from. 'assumed' values must name the physical test that will replace them.",
+  "type": "object",
+  "required": ["params"],
+  "properties": {
+    "params": {
+      "type": "object",
+      "required": ["speed_min_cph", "speed_nom_cph", "speed_max_cph"],
+      "additionalProperties": {
+        "type": "object",
+        "required": ["value", "source"],
+        "additionalProperties": false,
+        "properties": {
+          "value": {"type": "number"},
+          "unit": {"type": "string"},
+          "source": {"enum": ["requirement", "datasheet", "measured", "assumed", "derived"]},
+          "calibrated_by": {"type": "string", "description": "Physical test ID (tests.yaml) that measures this"},
+          "note": {"type": "string"}
+        },
+        "allOf": [{"if": {"properties": {"source": {"const": "assumed"}}}, "then": {"required": ["calibrated_by"]}}]
+      }
+    }
+  }
+}

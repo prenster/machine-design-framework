@@ -1,0 +1,60 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Machine cycle (timing) diagram",
+  "description": "The master document. Every axis is a function of machine angle 0-360 deg; every valve/solenoid has commanded on/off angles plus response delays (ms). Generates PLC cam tables and drives the simulation.",
+  "type": "object",
+  "required": ["axes", "valves"],
+  "properties": {
+    "machine_angle": {"type": "string"},
+    "axes": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["type", "vmax", "amax", "segments"],
+        "properties": {
+          "type": {"enum": ["servo", "mechanical_cam", "pneumatic"]},
+          "unit": {"type": "string"},
+          "drive": {"type": "string", "description": "Catalog drive/actuator, e.g. 'SEW MOVI-C + CMP63 + linear module'"},
+          "vmax": {"type": ["number", "string"], "description": "units/s, number or param name"},
+          "amax": {"type": ["number", "string"], "description": "units/s^2, number or param name"},
+          "segments": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "required": ["law", "from", "to"],
+              "additionalProperties": false,
+              "properties": {
+                "law": {"enum": ["dwell", "cycloidal", "poly5", "linear"]},
+                "from": {"type": "number", "minimum": 0, "maximum": 360},
+                "to": {"type": "number", "minimum": 0, "maximum": 360},
+                "at": {"type": "number", "description": "dwell position"},
+                "s0": {"type": "number"},
+                "s1": {"type": "number"},
+                "v0": {"type": "number", "description": "poly5 start velocity, units/deg"},
+                "v1": {"type": "number", "description": "poly5 end velocity, units/deg"},
+                "note": {"type": "string"}
+              }
+            }
+          }
+        }
+      }
+    },
+    "valves": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["on", "off", "on_delay", "off_delay"],
+        "additionalProperties": false,
+        "properties": {
+          "on": {"type": "number"},
+          "off": {"type": "number"},
+          "on_delay": {"type": ["number", "string"], "description": "ms, number or param name"},
+          "off_delay": {"type": ["number", "string"]},
+          "device": {"type": "string"},
+          "note": {"type": "string"}
+        }
+      }
+    }
+  }
+}

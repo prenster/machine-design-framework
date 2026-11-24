@@ -1,0 +1,58 @@
+# Physical tests. Cheapest test that settles the question. 'holdout: true' tests are never used for
+# calibration - they check a sim PREDICTION made with calibrated values.
+tests:
+  - id: PT-01
+    title: "Sheet thickness and caliper"
+    purpose: "Product geometry for clearance sweep."
+    calibrates: [sheet_thickness_mm]
+    method: "Micrometer, 10 sheets per stock, 5 points each."
+    equipment: [micrometer]
+    est_cost_usd: 0
+    status: done
+    result: measured
+  - id: PT-02
+    title: "Sheet friction on plate and on stack (inclined plane)"
+    purpose: "Inputs for slip model and stack pick behaviour."
+    method: "Tilt a plate faced with the vacuum-plate material until the sheet slides; tan(angle) = mu. Same for sheet-on-sheet. 10 runs per stock, both grain directions."
+    equipment: [plate, protractor or digital angle gauge]
+    est_cost_usd: 0
+    status: planned
+  - id: PT-03
+    title: "Vacuum on/off response time"
+    purpose: "Calibrates vac_on_delay_ms / vac_off_delay_ms used by PROD-PICK and PROD-PLACE."
+    calibrates: [vac_on_delay_ms, vac_off_delay_ms]
+    method: "Catalog ejector + the real hose length + plate. Log valve command and vacuum switch / analog sensor with a USB logic analyzer or PLC trace. 50 cycles. Use the 95th percentile, not the mean."
+    equipment: [ejector, vacuum sensor, solenoid valve, USB logic analyzer]
+    est_cost_usd: 250
+    status: planned
+  - id: PT-04
+    title: "Glue valve response and bead on a moving sheet"
+    purpose: "Calibrates glue_on/off_delay_ms; GLUE-BEAD depends on them at every speed."
+    calibrates: [glue_on_delay_ms, glue_off_delay_ms]
+    method: "Valve over a sheet on a linear slide at the glue-pass velocity. Fire at a known position; measure bead start/end vs. trigger point with a scale loupe. Three speeds."
+    equipment: [glue valve, linear slide or belt, scale loupe]
+    est_cost_usd: 400
+    status: planned
+  - id: PT-05
+    title: "Sheet slip acceleration on vacuum plate"
+    purpose: "Calibrates sheet_slip_accel_mm_s2 used by PROD-CARRY."
+    calibrates: [sheet_slip_accel_mm_s2]
+    method: "Plate on the stepper/servo mock-up; ramp acceleration until a pen mark on the sheet shows displacement > 0.1 mm. High-speed video (240 fps) as backup."
+    equipment: [kinematic mock-up, ejector, 240 fps camera]
+    est_cost_usd: 150
+    status: planned
+  - id: PT-06
+    title: "Double-sheet pick rate"
+    purpose: "Verifies REQ-PROC-005. Not simulatable."
+    method: "Mock-up picks 2,000 sheets per stock with the planned separation aid (air knife / corner fingers). Count doubles with a thickness gauge or ultrasonic double-sheet sensor."
+    equipment: [kinematic mock-up, double-sheet sensor]
+    est_cost_usd: 300
+    status: planned
+  - id: PT-07
+    title: "HOLDOUT: registration at max speed on the mock-up"
+    purpose: "Validates the calibrated sim's predicted registration error. Not used for calibration."
+    method: "Run the real cam tables on the mock-up at 3,000 cph, place onto a fixed target, measure edge position with a dial indicator, 100 cycles. Compare mean and spread to the sim prediction."
+    equipment: [kinematic mock-up, dial indicator]
+    est_cost_usd: 0
+    holdout: true
+    status: planned

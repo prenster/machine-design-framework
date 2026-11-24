@@ -1,0 +1,56 @@
+# MASTER TIMING DIAGRAM - pick-glue-place station
+# Every axis is a function of machine angle (0-360 deg = one cycle).
+# This file generates the PLC cam tables (MOVIKIT Camming / SoftMotion) and drives the simulation.
+# Change motion HERE, never in PLC code.
+machine_angle: "0 deg = carrier parked at pick port, vacuum off"
+
+axes:
+  x_transfer:
+    type: servo
+    unit: mm
+    drive: "SEW MOVI-C servo + belt-driven linear module (catalog)"
+    vmax: x_vmax_mm_s
+    amax: x_amax_mm_s2
+    segments:
+      - {law: dwell,     from: 0,   to: 50,  at: 0,   note: "pick: vacuum builds, Z lifts first"}
+      - {law: poly5,     from: 50,  to: 110, s0: 0,   s1: 260, v0: 0,   v1: 2.0, note: "accelerate into constant-velocity glue pass"}
+      - {law: linear,    from: 110, to: 150, s0: 260, s1: 340, note: "glue pass at constant velocity, 2.0 mm/deg"}
+      - {law: poly5,     from: 150, to: 210, s0: 340, s1: 600, v0: 2.0, v1: 0, note: "to place port; Z is up before the sheet reaches the backstop"}
+      - {law: dwell,     from: 210, to: 265, at: 600, note: "place: Z descends, vacuum releases, press, Z lifts"}
+      - {law: cycloidal, from: 265, to: 345, s0: 600, s1: 0, note: "unloaded return"}
+      - {law: dwell,     from: 345, to: 360, at: 0}
+
+  z_lift:
+    type: servo
+    unit: mm
+    drive: "SEW MOVI-C servo + ball-screw lift (catalog)"
+    vmax: z_vmax_mm_s
+    amax: z_amax_mm_s2
+    segments:
+      - {law: dwell,     from: 0,   to: 30,  at: 0,  note: "down on stack"}
+      - {law: cycloidal, from: 30,  to: 60,  s0: 0,  s1: 15, note: "lift clear of stack fence before X moves far"}
+      - {law: dwell,     from: 60,  to: 85,  at: 15}
+      - {law: cycloidal, from: 85,  to: 110, s0: 15, s1: 0, note: "down to glue-pass height"}
+      - {law: dwell,     from: 110, to: 150, at: 0,  note: "glue pass: 1.0 mm over nozzle"}
+      - {law: cycloidal, from: 150, to: 175, s0: 0,  s1: 15}
+      - {law: dwell,     from: 175, to: 195, at: 15}
+      - {law: cycloidal, from: 195, to: 220, s0: 15, s1: 0, note: "place descent, X already parked"}
+      - {law: dwell,     from: 220, to: 240, at: 0,  note: "release + press"}
+      - {law: cycloidal, from: 240, to: 265, s0: 0,  s1: 15}
+      - {law: dwell,     from: 265, to: 330, at: 15}
+      - {law: cycloidal, from: 330, to: 360, s0: 15, s1: 0}
+
+valves:
+  vacuum:
+    device: "vacuum generator + blow-off (catalog, e.g. Schmalz/Piab compact ejector)"
+    "on": 10
+    "off": 222
+    on_delay: vac_on_delay_ms
+    off_delay: vac_off_delay_ms
+  glue_gun:
+    device: "cold-glue jet valve (catalog)"
+    "on": 128.64
+    "off": 130.4
+    on_delay: glue_on_delay_ms
+    off_delay: glue_off_delay_ms
+    note: "commanded angles set for nominal speed; delays shift the bead with speed - GLUE-BEAD checks all speeds"

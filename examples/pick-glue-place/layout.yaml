@@ -1,0 +1,47 @@
+# Side-view (X along machine, Z up) planar layout, mm.
+# Carrier + product polygons are in the carrier frame (origin = product trailing edge, underside).
+carrier:
+  x_axis: x_transfer
+  z_axis: z_lift
+  bodies:
+    - {id: vacuum_plate, part: "MDF-100-010", polygon: [[5, 0.15], [145, 0.15], [145, 12], [5, 12]]}
+
+product:
+  id: endsheet
+  polygon: [[0, 0], [150, 0], [150, 0.15], [0, 0.15]]
+  grip_valve: vacuum
+  placed_until: 300
+
+static:
+  - {id: stack,              polygon: [[0, -40], [150, -40], [150, 0], [0, 0]]}
+  - {id: stack_fence,        part: "MDF-100-020", polygon: [[152, -40], [156, -40], [156, 6], [152, 6]]}
+  - {id: nozzle_body,        part: "catalog glue valve + MDF-100-030 bracket",
+     polygon: [[300, -30], [310, -30], [310, -1.5], [306, -1], [304, -1], [300, -1.5]]}
+  - {id: signature,          polygon: [[600, -25], [770, -25], [770, 0], [600, 0]]}
+  - {id: signature_backstop, part: "MDF-100-040", polygon: [[594, -25], [598, -25], [598, 4], [594, 4]]}
+
+ports:
+  pick:  {x: 0,   z: 0, tol_x: 0.3, tol_z: 0.05}
+  place: {x: 600, z: 0, tol_x: 0.3, tol_z: 0.05}
+  max_speed_at_port_mm_s: 5
+
+glue:
+  valve: glue_gun
+  nozzle_x: 305
+  nozzle_z: -1.0
+  bead: {start_mm: 3.0, end_mm: 7.0, tol_mm: 1.0}
+  gap: {min_mm: 0.5, max_mm: 1.5}
+
+clearance:
+  default_min_mm: 2.0
+  step_deg: 0.25
+  rules:
+    - {between: [endsheet, stack],              min_mm: 0.0, window: [0, 75],    why: "sheet sits on stack until lifted"}
+    - {between: [vacuum_plate, stack],          min_mm: 0.1, window: [330, 75],  why: "plate lands on top sheet at pick"}
+    - {between: [endsheet, stack_fence],        min_mm: 1.0, window: [0, 75],    why: "fence is the side lay; sheet registers 2 mm off it"}
+    - {between: [endsheet, nozzle_body],        min_mm: 0.5, window: [100, 160], why: "designed 1.0 mm glue gap"}
+    - {between: [vacuum_plate, nozzle_body],    min_mm: 0.5, window: [100, 160], why: "plate passes over nozzle during glue pass"}
+    - {between: [endsheet, signature],          min_mm: 0.0, window: [200, 245], why: "placement contact"}
+    - {between: [endsheet, signature_backstop], min_mm: 1.0, window: [185, 250], why: "sheet registers 2 mm off backstop"}
+    - {between: [vacuum_plate, signature],      min_mm: 0.1, window: [200, 265], why: "plate presses sheet onto signature"}
+    - {between: [vacuum_plate, endsheet_placed], min_mm: 0.0, window: [215, 270], why: "plate on placed sheet during press"}

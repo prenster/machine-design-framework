@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Physical tests",
+  "description": "Cheap real-world tests that calibrate simulation assumptions or verify what simulation cannot.",
+  "type": "object",
+  "required": ["tests"],
+  "properties": {
+    "tests": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "purpose", "method", "status"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^PT-[0-9]{2,3}$"},
+          "title": {"type": "string"},
+          "purpose": {"type": "string"},
+          "calibrates": {"type": "array", "items": {"type": "string"}},
+          "method": {"type": "string"},
+          "equipment": {"type": "array", "items": {"type": "string"}},
+          "est_cost_usd": {"type": "number"},
+          "samples": {"type": "string"},
+          "acceptance": {"type": "string"},
+          "holdout": {"type": "boolean", "description": "true = used to validate a sim prediction, never to calibrate"},
+          "status": {"enum": ["planned", "running", "done"]},
+          "result": {"enum": ["pass", "fail", "measured"]},
+          "measured": {"type": "object"},
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}

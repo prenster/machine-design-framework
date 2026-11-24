@@ -1,0 +1,52 @@
+station: "BROKEN example station: endsheet pick - glue - place"
+description: >
+  Illustrative station, not a production design. Picks one endsheet from a stack with a vacuum
+  plate, passes it over a glue jet to lay a bead along its trailing edge, and places it registered
+  onto a signature. Side-view planar model only.
+requirements:
+  - id: REQ-PROC-001
+    text: "Place the endsheet with its trailing edge within +/-0.3 mm of the signature registration point."
+    category: process
+    source: chief engineer
+    verification: {method: check, ref: PROD-PLACE}
+  - id: REQ-PROC-002
+    text: "Glue bead 3-7 mm from the trailing edge (+/-1 mm) at every production speed; no glue on the machine."
+    category: process
+    verification: {method: check, ref: GLUE-BEAD}
+  - id: REQ-PROC-003
+    text: "Nozzle-to-sheet gap 0.5-1.5 mm during the glue shot."
+    category: process
+    verification: {method: check, ref: GLUE-BEAD}
+  - id: REQ-PROC-004
+    text: "Pick exactly one sheet; vacuum established before the carrier leaves the stack."
+    category: process
+    verification: {method: check, ref: PROD-PICK}
+  - id: REQ-PROC-005
+    text: "Double-sheet pick rate below 1 in 2,000 on both production endsheet stocks."
+    category: process
+    rationale: "Sim cannot model air infiltration and sheet-to-sheet adhesion. Physical only."
+    verification: {method: test, ref: PT-06}
+  - id: REQ-PROC-006
+    text: "Sheet does not shift on the vacuum plate during transfer."
+    category: process
+    verification: {method: check, ref: PROD-CARRY}
+  - id: REQ-PERF-001
+    text: "1,500-3,000 cycles/h, all process requirements met across the whole range."
+    category: performance
+    verification: {method: check, ref: [VALVE-TIMING, CYC-LIMITS]}
+  - id: REQ-MECH-001
+    text: "No interference anywhere in the cycle; 2.0 mm minimum clearance except declared contact/close-approach windows."
+    category: mechanical
+    verification: {method: check, ref: SWEEP-CLEARANCE}
+  - id: REQ-MECH-002
+    text: "Motion laws continuous in position and velocity; all axes within catalog drive limits at max speed."
+    category: mechanical
+    verification: {method: check, ref: [CYC-LAW, CYC-LIMITS]}
+  - id: REQ-SAFE-001
+    text: "Carrier travel zone fully guarded; guard interlock stops motion per the ISO 13849 performance level set by the risk assessment."
+    category: safety
+    verification: {method: review}
+  - id: REQ-MFG-001
+    text: "All non-catalog parts makeable on a 3-axis mill or laser + brake; no tolerance tighter than +/-0.05 mm without justification."
+    category: manufacturing
+    verification: {method: review}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Station requirements",
+  "description": "Every requirement has an ID and says how it will be verified: an automated check, a physical test, or a human review.",
+  "type": "object",
+  "required": ["station", "requirements"],
+  "properties": {
+    "station": {"type": "string"},
+    "description": {"type": "string"},
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "text", "category", "verification"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {"type": "string", "pattern": "^REQ-[A-Z]+-[0-9]{3}$"},
+          "text": {"type": "string"},
+          "category": {"enum": ["process", "performance", "mechanical", "controls", "electrical", "safety", "manufacturing", "maintenance"]},
+          "rationale": {"type": "string"},
+          "source": {"type": "string", "description": "Who or what this came from: operator, process test, standard, chief engineer"},
+          "verification": {
+            "type": "object",
+            "required": ["method"],
+            "additionalProperties": false,
+            "properties": {
+              "method": {"enum": ["check", "test", "review"]},
+              "ref": {"oneOf": [{"type": "string"}, {"type": "array", "items": {"type": "string"}}]}
+            }
+          }
+        }
+      }
+    }
+  }
+}
