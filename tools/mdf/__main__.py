@@ -31,12 +31,26 @@ def main(argv=None) -> int:
     lk.add_argument("--by", default=None, help="approver's name (a person). Omit to write an unreviewed baseline.")
     ck = sub.add_parser("checks", help="print the current check definitions in readable form (for review)")
     ck.add_argument("project")
+    an = sub.add_parser("animate", help="render the machine cycle to MP4 (3D + timing strip)")
+    an.add_argument("project")
+    an.add_argument("--variant", default=None)
+    an.add_argument("--cycles", type=int, default=1)
+    an.add_argument("--frames-per-cycle", type=int, default=180)
+    an.add_argument("--out", default=None)
     nw = sub.add_parser("new", help="scaffold a station project from the reference example")
     nw.add_argument("dest")
     cc = sub.add_parser("claimcheck", help="fail unless the last verify is current and not FAIL")
     cc.add_argument("projects", nargs="+")
     args = ap.parse_args(argv)
 
+    if args.cmd == "animate":
+        from .animate import animate
+        from .project import variants as list_variants
+        v = args.variant or (list_variants(args.project) or [None])[0]
+        proj = load(args.project, v)
+        out = Path(args.out) if args.out else proj.root / "build" / f"cycle{'-' + v if v else ''}.mp4"
+        print(f"wrote {animate(proj, out, args.cycles, args.frames_per_cycle)}")
+        return 0
     if args.cmd == "new":
         import shutil
         src = Path(__file__).resolve().parents[2] / "examples" / "pick-glue-place"

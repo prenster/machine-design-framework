@@ -79,3 +79,15 @@ To test real control code and real motion before the machine exists:
 - `mdf-chrono`: build a PyChrono model from layout + CAD for aeroelastic/contact sheet dynamics beyond the beam model.
 - `mdf-tolerance`: worst-case and Monte Carlo stack-ups on critical chains (registration).
 - `mdf-codesys-sil`: run the same ST in a real CODESYS soft-PLC against the plant model over OPC UA.
+
+## Viewing designs without CAD software
+
+- **Cycle video:** `python mdf.py animate [PROJECT] --variant nominal` writes
+  `<project>/build/cycle-<variant>.mp4`: 3D station with bodies moving per `cycle.yaml`, product
+  state (gripped / placed / glue), the segment notes as captions, and a timing strip with a cursor.
+  Needs ffmpeg (`winget install ffmpeg` on Windows, `apt install ffmpeg` on Linux).
+  The video is generated from the same model the checks use, so it shows what was verified,
+  not an artist's impression. It is a review aid, not a check.
+- **Static renders:** `make verify` writes PNG renders into `build/`.
+- **STEP files:** exported to `build/` for anyone who wants to orbit the model. Any free viewer
+  works (FreeCAD, eDrawings Viewer, CAD Assistant). Not required.

@@ -10,6 +10,7 @@
     python mdf.py checks PROJECT              # print check definitions for review
     python mdf.py lock PROJECT --by "Name"    # chief engineer approves the check definitions
     python mdf.py baseline PROJECT            # unreviewed baseline lock (Claude may write this)
+    python mdf.py animate [PROJECT] [--variant V]   # MP4 of the machine cycle (needs ffmpeg)
     python mdf.py new DEST                    # scaffold a station project
     python mdf.py claimcheck PROJECT...       # used by the git hook
     python mdf.py hooks                       # install the claim-contract git hook
@@ -69,6 +70,10 @@ def main(argv: list[str]) -> int:
             if rc != 0:
                 return rc
         return 0
+    if cmd == "animate":
+        if not rest or rest[0].startswith("-"):
+            rest = [DEFAULT, *rest]
+        return _mdf("animate", *rest)
     if cmd in ("plc", "checks", "new", "claimcheck"):
         return _mdf(cmd, *rest)
     if cmd == "lock":
