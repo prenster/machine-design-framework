@@ -9,6 +9,8 @@ axes:
     type: servo
     unit: mm
     drive: "SEW MOVI-C servo + belt-driven linear module (catalog)"
+    module: X_MODULE
+    motor: X_MOTOR
     vmax: x_vmax_mm_s
     amax: x_amax_mm_s2
     segments:
@@ -24,6 +26,9 @@ axes:
     type: servo
     unit: mm
     drive: "SEW MOVI-C servo + ball-screw lift (catalog)"
+    module: Z_MODULE
+    motor: Z_MOTOR
+    rides_on: x_transfer
     vmax: z_vmax_mm_s
     amax: z_amax_mm_s2
     segments:
@@ -39,6 +44,12 @@ axes:
       - {law: cycloidal, from: 240, to: 265, s0: 0,  s1: 15}
       - {law: dwell,     from: 265, to: 330, at: 15}
       - {law: cycloidal, from: 330, to: 360, s0: 15, s1: 0}
+
+park_angle: 355
+
+sensors:
+  vac_ok:       {check_at: 26, signal: xVacOk,       note: "vacuum confirmed before Z lifts at 30 deg"}
+  double_sheet: {check_at: 75, signal: xDoubleSheet, note: "sensor reads the gripped sheet after lift, before glue"}
 
 valves:
   vacuum:

@@ -7,7 +7,9 @@ and manufacturing. They get files exported from the repo, and their exports come
 
 | Need | Tool | Notes |
 |---|---|---|
-| Data, schemas, checks | Python 3, PyYAML, jsonschema, numpy, shapely | This repo, `make verify` |
+| Data, schemas, checks | Python 3, PyYAML, jsonschema, numpy, scipy, shapely | This repo, `make verify` |
+| 3D collision | trimesh + python-fcl, manifold3d for exact overlap | SWEEP-3D |
+| PLC SIL | lark (ST parser) → Python transpiler | PLC-COMPILE, SIL-* |
 | Parametric 3D CAD | **build123d** (or CadQuery), OpenCascade kernel | Code → STEP/STL/GLB. Catalog STEP models imported as-is |
 | 2D drawings | build123d projection/SVG export, FreeCAD TechDraw | Drawings always get human review (G4) |
 | Multibody / flexible sim | **Project Chrono** (PyChrono) | Rigid + FEA shells/cables; heavier |
@@ -71,4 +73,6 @@ To test real control code and real motion before the machine exists:
 - `mdf-cad-viewer`: STEP/GLB → HTML 3D viewer page (scripted).
 - `mdf-camtable-export`: `cycle.yaml` → MOVIKIT/SoftMotion cam table files, once SEW confirms the import format.
 - `mdf-quotes`: BOM line → three vendor quotes table in the purchasing format (3-quote PO rule).
-- `mdf-chrono`: build a PyChrono model from layout + CAD for L7 dynamics.
+- `mdf-chrono`: build a PyChrono model from layout + CAD for aeroelastic/contact sheet dynamics beyond the beam model.
+- `mdf-tolerance`: worst-case and Monte Carlo stack-ups on critical chains (registration).
+- `mdf-codesys-sil`: run the same ST in a real CODESYS soft-PLC against the plant model over OPC UA.

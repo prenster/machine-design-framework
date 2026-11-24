@@ -1,0 +1,41 @@
+# Software-in-the-loop scenarios: the real ST program (plc/) against the plant model.
+scan_ms: plc_scan_ms
+program: MAIN
+scenarios:
+  - id: SIL-NOMINAL
+    text: "Production run: every sheet glued in spec and placed on register"
+    speeds: [min, nom, max]
+    cycles: 6
+    expect: {placed: all, dropped_max: 0, registration_tol_mm: 0.3, bead_in_spec: true,
+             glue_on_machine_mm_max: 0, final_state: RUN}
+  - id: SIL-MISSED-PICK
+    text: "One failed pick: no glue fired on that cycle, machine keeps running"
+    cycles: 6
+    inject: [{type: pick_fail, cycles: [2]}]
+    expect: {placed: 5, no_glue_on_cycles: [2], glue_on_machine_mm_max: 0, final_state: RUN}
+  - id: SIL-STACK-EMPTY
+    text: "Stack runs out: faults after MAX_MISSES empty picks, no glue on the machine"
+    cycles: 8
+    stack: 3
+    expect: {placed: 3, glue_on_machine_mm_max: 0, dropped_max: 0, final_state: FAULT, fault_code: 4}
+  - id: SIL-DOUBLE-SHEET
+    text: "Double sheet: no glue, stops holding the double, nothing dropped"
+    cycles: 6
+    inject: [{type: double_sheet, cycles: [2]}]
+    expect: {placed: 2, no_glue_on_cycles: [2], dropped_max: 0, final_state: FAULT, fault_code: 5}
+  - id: SIL-GUARD-MID-GLUE
+    text: "Guard opened during the glue shot: master and glue off within one scan, sheet held"
+    cycles: 4
+    inject: [{type: guard_open, cycle: 2, angle: 129.5}]
+    expect: {stop_within_ms: 1.5, glue_off_within_ms: 1.5, dropped_max: 0, glue_on_machine_mm_max: 0,
+             final_state: FAULT, fault_code: 1}
+  - id: SIL-ESTOP-IN-TRANSFER
+    text: "E-stop during transfer: master stops within one scan, sheet held"
+    cycles: 4
+    inject: [{type: estop, cycle: 1, angle: 180}]
+    expect: {stop_within_ms: 1.5, dropped_max: 0, final_state: FAULT, fault_code: 2}
+  - id: SIL-AIR-LOSS
+    text: "Main air lost mid-transfer: fault within debounce + 1 scan, no glue on the machine"
+    cycles: 4
+    inject: [{type: air_loss, cycle: 1, angle: 170}]
+    expect: {stop_within_ms: 21.5, glue_on_machine_mm_max: 0, dropped_max: 1, final_state: FAULT, fault_code: 3}

@@ -1,10 +1,6 @@
-# DELIBERATELY BROKEN COPY of ../pick-glue-place/cycle.yaml. Each fault below is the kind of
-# plausible-looking mistake an agent (or a person) makes when reasoning about a machine in its head.
-# `make verify-broken` shows the checks catching every one.
-#   FAULT 1: place port typed as 594 instead of 600 (registration error + hits the backstop)
-#   FAULT 2: glue-pass height left at 3 mm (glue fired into the air: gap 4 mm)
-#   FAULT 3: vacuum release moved early to 'save time' (sheet dropped from height, while moving)
-#   FAULT 4: glue-pass speed changed to 2.25 mm/deg without updating the neighbouring segments
+# DELIBERATELY BROKEN COPY of ../pick-glue-place. Every fault below is a plausible mistake that
+# looks fine when reasoned about in someone's head. `make verify-broken` must catch all of them.
+# See FAULTS.md for the list and which check catches each one.
 # MASTER TIMING DIAGRAM - pick-glue-place station
 # Every axis is a function of machine angle (0-360 deg = one cycle).
 # This file generates the PLC cam tables (MOVIKIT Camming / SoftMotion) and drives the simulation.
@@ -16,6 +12,8 @@ axes:
     type: servo
     unit: mm
     drive: "SEW MOVI-C servo + belt-driven linear module (catalog)"
+    module: X_MODULE
+    motor: X_MOTOR
     vmax: x_vmax_mm_s
     amax: x_amax_mm_s2
     segments:
@@ -31,6 +29,9 @@ axes:
     type: servo
     unit: mm
     drive: "SEW MOVI-C servo + ball-screw lift (catalog)"
+    module: Z_MODULE
+    motor: Z_MOTOR
+    rides_on: x_transfer
     vmax: z_vmax_mm_s
     amax: z_amax_mm_s2
     segments:
@@ -46,6 +47,12 @@ axes:
       - {law: cycloidal, from: 240, to: 265, s0: 0,  s1: 15}
       - {law: dwell,     from: 265, to: 330, at: 15}
       - {law: cycloidal, from: 330, to: 360, s0: 15, s1: 0}
+
+park_angle: 355
+
+sensors:
+  vac_ok:       {check_at: 26, signal: xVacOk,       note: "vacuum confirmed before Z lifts at 30 deg"}
+  double_sheet: {check_at: 75, signal: xDoubleSheet, note: "sensor reads the gripped sheet after lift, before glue"}
 
 valves:
   vacuum:

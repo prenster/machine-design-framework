@@ -1,13 +1,16 @@
 P ?= examples/pick-glue-place
 PY ?= python3
 
-.PHONY: verify verify-broken install all
+.PHONY: verify verify-broken install all plc
 
 install:
 	$(PY) -m pip install -r requirements.txt
 
 verify:
 	PYTHONPATH=tools $(PY) -m mdf verify $(P)
+
+plc:
+	PYTHONPATH=tools $(PY) -m mdf plc $(P)
 
 # Must FAIL: proves the checks catch planted mistakes.
 verify-broken:

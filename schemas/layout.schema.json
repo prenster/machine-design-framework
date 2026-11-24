@@ -3,33 +3,226 @@
   "title": "Station planar layout (side view)",
   "description": "Geometry used by the clearance sweep and product-path checks. Units mm. Carrier/product polygons are in the carrier frame; static polygons in the machine frame.",
   "type": "object",
-  "required": ["carrier", "product", "static", "ports", "clearance"],
+  "required": [
+    "carrier",
+    "product",
+    "static",
+    "ports",
+    "clearance"
+  ],
   "$defs": {
-    "polygon": {"type": "array", "minItems": 3, "items": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2}},
-    "body": {"type": "object", "required": ["id", "polygon"], "properties": {"id": {"type": "string"}, "polygon": {"$ref": "#/$defs/polygon"}, "part": {"type": "string"}}},
-    "port": {"type": "object", "required": ["x", "z", "tol_x", "tol_z"], "properties": {"x": {"type": "number"}, "z": {"type": "number"}, "tol_x": {"type": "number"}, "tol_z": {"type": "number"}}}
+    "polygon": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "array",
+        "items": {
+          "type": "number"
+        },
+        "minItems": 2,
+        "maxItems": 2
+      }
+    },
+    "body": {
+      "type": "object",
+      "required": [
+        "id",
+        "polygon"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "polygon": {
+          "$ref": "#/$defs/polygon"
+        },
+        "part": {
+          "type": "string"
+        }
+      }
+    },
+    "port": {
+      "type": "object",
+      "required": [
+        "x",
+        "z",
+        "tol_x",
+        "tol_z"
+      ],
+      "properties": {
+        "x": {
+          "type": "number"
+        },
+        "z": {
+          "type": "number"
+        },
+        "tol_x": {
+          "type": "number"
+        },
+        "tol_z": {
+          "type": "number"
+        }
+      }
+    }
   },
   "properties": {
-    "carrier": {"type": "object", "required": ["x_axis", "z_axis", "bodies"], "properties": {
-      "x_axis": {"type": "string"}, "z_axis": {"type": "string"},
-      "bodies": {"type": "array", "items": {"$ref": "#/$defs/body"}}}},
-    "product": {"type": "object", "required": ["id", "polygon", "grip_valve", "placed_until"], "properties": {
-      "id": {"type": "string"}, "polygon": {"$ref": "#/$defs/polygon"},
-      "grip_valve": {"type": "string"}, "placed_until": {"type": "number", "description": "angle at which the placed product leaves the station"}}},
-    "static": {"type": "array", "items": {"$ref": "#/$defs/body"}},
-    "ports": {"type": "object", "required": ["pick", "place"], "properties": {
-      "pick": {"$ref": "#/$defs/port"}, "place": {"$ref": "#/$defs/port"},
-      "max_speed_at_port_mm_s": {"type": "number"}}},
-    "glue": {"type": "object", "required": ["valve", "nozzle_x", "nozzle_z", "bead", "gap"], "properties": {
-      "valve": {"type": "string"}, "nozzle_x": {"type": "number"}, "nozzle_z": {"type": "number"},
-      "bead": {"type": "object", "required": ["start_mm", "end_mm", "tol_mm"]},
-      "gap": {"type": "object", "required": ["min_mm", "max_mm"]}}},
-    "clearance": {"type": "object", "required": ["default_min_mm"], "properties": {
-      "default_min_mm": {"type": "number"}, "step_deg": {"type": "number"},
-      "rules": {"type": "array", "items": {"type": "object", "required": ["between", "min_mm", "window"], "properties": {
-        "between": {"type": "array", "items": {"type": "string"}, "minItems": 2, "maxItems": 2},
-        "min_mm": {"type": "number"},
-        "window": {"type": "array", "items": {"type": "number"}, "minItems": 2, "maxItems": 2},
-        "why": {"type": "string"}}}}}}
+    "carrier": {
+      "type": "object",
+      "required": [
+        "x_axis",
+        "z_axis",
+        "bodies"
+      ],
+      "properties": {
+        "x_axis": {
+          "type": "string"
+        },
+        "z_axis": {
+          "type": "string"
+        },
+        "bodies": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/body"
+          }
+        }
+      }
+    },
+    "product": {
+      "type": "object",
+      "required": [
+        "id",
+        "polygon",
+        "grip_valve",
+        "placed_until"
+      ],
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "polygon": {
+          "$ref": "#/$defs/polygon"
+        },
+        "grip_valve": {
+          "type": "string"
+        },
+        "placed_until": {
+          "type": "number",
+          "description": "angle at which the placed product leaves the station"
+        },
+        "held_by": {
+          "type": "string"
+        }
+      }
+    },
+    "static": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/body"
+      }
+    },
+    "ports": {
+      "type": "object",
+      "required": [
+        "pick",
+        "place"
+      ],
+      "properties": {
+        "pick": {
+          "$ref": "#/$defs/port"
+        },
+        "place": {
+          "$ref": "#/$defs/port"
+        },
+        "max_speed_at_port_mm_s": {
+          "type": "number"
+        }
+      }
+    },
+    "glue": {
+      "type": "object",
+      "required": [
+        "valve",
+        "nozzle_x",
+        "nozzle_z",
+        "bead",
+        "gap"
+      ],
+      "properties": {
+        "valve": {
+          "type": "string"
+        },
+        "nozzle_x": {
+          "type": "number"
+        },
+        "nozzle_z": {
+          "type": "number"
+        },
+        "bead": {
+          "type": "object",
+          "required": [
+            "start_mm",
+            "end_mm",
+            "tol_mm"
+          ]
+        },
+        "gap": {
+          "type": "object",
+          "required": [
+            "min_mm",
+            "max_mm"
+          ]
+        }
+      }
+    },
+    "clearance": {
+      "type": "object",
+      "required": [
+        "default_min_mm"
+      ],
+      "properties": {
+        "default_min_mm": {
+          "type": "number"
+        },
+        "step_deg": {
+          "type": "number"
+        },
+        "rules": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "between",
+              "min_mm",
+              "window"
+            ],
+            "properties": {
+              "between": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "min_mm": {
+                "type": "number"
+              },
+              "window": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                },
+                "minItems": 2,
+                "maxItems": 2
+              },
+              "why": {
+                "type": "string"
+              }
+            }
+          }
+        }
+      }
+    }
   }
 }

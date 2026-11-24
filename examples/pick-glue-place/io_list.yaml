@@ -1,0 +1,19 @@
+# Source of truth for PLC I/O. plc/generated/GVL_IO.st is generated from this file.
+signals:
+  # from the motion controller (virtual master axis), not a physical channel
+  - {tag: rAngle,       dir: in,  type: REAL, virtual: true, note: "machine angle 0-360 from the virtual master"}
+  # outputs
+  - {tag: xMasterRun,   dir: out, type: BOOL, virtual: true, note: "enable/run the cam master"}
+  - {tag: xVacuum,      dir: out, type: BOOL, device: VAC_VALVE,  card: DO1, ch: 0, cycle_valve: vacuum, air_consumer: EJECTOR}
+  - {tag: xGlueGun,     dir: out, type: BOOL, device: GLUE_VALVE, card: DO1, ch: 1, cycle_valve: glue_gun}
+  - {tag: xLampFault,   dir: out, type: BOOL, device: LAMP_FAULT, card: DO1, ch: 2}
+  # inputs
+  - {tag: xVacOk,       dir: in,  type: BOOL, device: VAC_SWITCH,    card: DI1, ch: 0}
+  - {tag: xDoubleSheet, dir: in,  type: BOOL, device: DOUBLE_SENSOR, card: DI1, ch: 1}
+  - {tag: xAirOk,       dir: in,  type: BOOL, device: AIR_SWITCH,    card: DI1, ch: 2}
+  - {tag: xGlueReady,   dir: in,  type: BOOL, device: GLUE_UNIT,     card: DI1, ch: 3}
+  - {tag: xStartPb,     dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 4}
+  - {tag: xStopPb,      dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 5}
+  - {tag: xResetPb,     dir: in,  type: BOOL, device: OP_PANEL,      card: DI1, ch: 6}
+  - {tag: xGuardClosed, dir: in,  type: BOOL, device: GUARD_SWITCH,  card: SDI1, ch: 0}
+  - {tag: xEStopOk,     dir: in,  type: BOOL, device: ESTOP,         card: SDI1, ch: 1}

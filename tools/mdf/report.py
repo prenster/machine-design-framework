@@ -87,7 +87,8 @@ def markdown(proj: Project, results, trace, audit) -> str:
         out.append(f"| {r.check_id} | {r.speed or '-'} | {r.status} | {r.summary} |")
     out += ["", "### Details", ""]
     for r in results:
-        if r.details and (r.status != PASS or r.check_id in ("SWEEP-CLEARANCE", "VALVE-TIMING")):
+        always = ("SWEEP-CLEARANCE", "SWEEP-3D", "VALVE-TIMING", "BOM-SIZING", "SHEET-DYN")
+        if r.details and (r.status != PASS or r.check_id in always or r.check_id.startswith(("C-", "SIL-"))):
             out.append(f"**{r.check_id}** ({r.speed or '-'}, {r.status})")
             out += [f"- {d}" for d in r.details]
             out.append("")

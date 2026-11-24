@@ -1,0 +1,9 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Cross-spec constraints",
+  "description": "Expressions over part.<ID>.<spec>, param.<name>, axis.<id>.<derived>, budget.<name>, cycles_per_s_max, cph_max.",
+  "type": "object",
+  "required": ["constraints"],
+  "properties": {"constraints": {"type": "array", "items": {"type": "object", "required": ["id", "expr"], "additionalProperties": false,
+    "properties": {"id": {"type": "string", "pattern": "^C-[A-Z0-9-]+$"}, "text": {"type": "string"}, "expr": {"type": "string"}, "fail_message": {"type": "string"}}}}}
+}

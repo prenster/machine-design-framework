@@ -71,6 +71,37 @@ class World:
         self.grip_valve = prod["grip_valve"]
         self.placed_until = float(prod["placed_until"])
         self.grip = self.valve_window(self.grip_valve)
+        self.thickness = self.product_poly.bounds[3] - self.product_poly.bounds[1]
+        self._sheet = None
+        self._sheet_done = False
+
+    def supported(self, theta: float) -> bool:
+        x, z = self.carrier(theta)
+        for port in ("pick", "place"):
+            p = self.p.layout["ports"][port]
+            if abs(x - p["x"]) <= p["tol_x"] and abs(z - p["z"]) <= p["tol_z"]:
+                return True
+        return False
+
+    @property
+    def sheet(self):
+        if not self._sheet_done:
+            from .sheetdyn import simulate
+            self._sheet = simulate(self.p, self, self.supported)
+            self._sheet_done = True
+        return self._sheet
+
+    def product_shape(self, theta: float):
+        """Product polygon in carrier frame, deformed by sheet dynamics when available."""
+        sh = self.sheet
+        w = sh.deflection(theta) if sh is not None else None
+        if w is None:
+            return self.product_poly
+        xs = sh.x_nodes
+        z0 = self.product_poly.bounds[1]
+        bottom = [(float(x), z0 + float(wi)) for x, wi in zip(xs, w)]
+        top = [(float(x), z0 + float(wi) + self.thickness) for x, wi in zip(xs[::-1], w[::-1])]
+        return Polygon(bottom + top)
 
     def valve_window(self, valve_id: str) -> tuple[float, float]:
         v = self.p.cycle["valves"][valve_id]
@@ -91,7 +122,7 @@ class World:
         x, z = self.carrier(theta)
         out = [(bid, affinity.translate(poly, x, z)) for bid, poly in self.carrier_bodies]
         if self.gripped(theta):
-            out.append((self.product_id, affinity.translate(self.product_poly, x, z)))
+            out.append((self.product_id, affinity.translate(self.product_shape(theta), x, z)))
         return out
 
     def static_bodies(self, theta: float):
@@ -314,7 +345,8 @@ def check_glue(proj: Project) -> list[CheckResult]:
                 off_product += 1
                 continue
             xs.append(sx)
-            gaps.append(cz + plen[1] - g["nozzle_z"])
+            droop = world.sheet.at(t, sx) if world.sheet is not None else 0.0
+            gaps.append(cz + plen[1] + droop - g["nozzle_z"])
         issues = []
         if off_product:
             issues.append(f"{off_product / (n + 1):.0%} of the glue shot lands off the product (on the machine)")
@@ -334,11 +366,40 @@ def check_glue(proj: Project) -> list[CheckResult]:
     return results
 
 
-ALL_CHECKS = [check_cycle_law, check_cycle_limits, check_valve_timing, check_sweep, check_product, check_glue]
+def check_sheet(proj: Project) -> list[CheckResult]:
+    if "sheet_bending_stiffness_mNm" not in proj.data["params"]["params"]:
+        return []
+    results = []
+    limit = proj.param("sheet_max_deflection_mm")
+    for name, cph in proj.speeds:
+        world = World(proj, cph)
+        sh = world.sheet
+        wmin, tmin, wmax, tmax = sh.envelope()
+        issues = []
+        if max(-wmin, wmax) > limit:
+            issues.append(f"overhang deflection {wmin:+.2f}/{wmax:+.2f} mm exceeds {limit} mm")
+        notes = [f"first bending mode of the overhang: {sh.first_mode_hz:.1f} Hz; clamped under plate "
+                 f"{sh.clamp[0]:.0f}-{sh.clamp[1]:.0f} mm",
+                 f"max droop {wmin:+.2f} mm at {tmin:.1f} deg, max lift {wmax:+.2f} mm at {tmax:.1f} deg",
+                 "deformed sheet is used by SWEEP-CLEARANCE and GLUE-BEAD",
+                 "NOT modelled: edgewise aeroelastic flutter, in-plane buckling, curl, air cushion -> PT video test"]
+        results.append(CheckResult("SHEET-DYN", FAIL if issues else PASS,
+                                   f"droop {wmin:+.2f} mm / lift {wmax:+.2f} mm, f1 {sh.first_mode_hz:.0f} Hz @ {cph:g} cph",
+                                   issues + notes, speed=name))
+    return results
+
+
+ALL_CHECKS = [check_sheet, check_cycle_law, check_cycle_limits, check_valve_timing, check_sweep, check_product, check_glue]
 
 
 def run_all(proj: Project) -> list[CheckResult]:
+    from .bom import run_bom
+    from .sil import run_sil
+    from .sweep3d import run_3d
     out = []
     for fn in ALL_CHECKS:
         out.extend(fn(proj))
+    out.extend(run_3d(proj))
+    out.extend(run_bom(proj))
+    out.extend(run_sil(proj))
     return out

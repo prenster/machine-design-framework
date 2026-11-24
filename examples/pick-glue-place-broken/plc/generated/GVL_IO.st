@@ -1,0 +1,17 @@
+(* GENERATED from io_list.yaml - DO NOT EDIT. source-hash: 5f45f90c360e175b *)
+VAR_GLOBAL
+    rAngle : REAL;   (* in  virtual *)
+    xMasterRun : BOOL;   (* out  virtual *)
+    xVacuum : BOOL;   (* out  DO1.0 VAC_VALVE *)
+    xGlueGun : BOOL;   (* out  DO1.1 GLUE_VALVE *)
+    xLampFault : BOOL;   (* out  DO1.2 LAMP_FAULT *)
+    xVacOk : BOOL;   (* in  DI1.0 VAC_SWITCH *)
+    xDoubleSheet : BOOL;   (* in  DI1.1 DOUBLE_SENSOR *)
+    xAirOk : BOOL;   (* in  DI1.2 AIR_SWITCH *)
+    xGlueReady : BOOL;   (* in  DI1.3 GLUE_UNIT *)
+    xStartPb : BOOL;   (* in  DI1.4 OP_PANEL *)
+    xStopPb : BOOL;   (* in  DI1.5 OP_PANEL *)
+    xResetPb : BOOL;   (* in  DI1.6 OP_PANEL *)
+    xGuardClosed : BOOL;   (* in  SDI1.0 GUARD_SWITCH *)
+    xEStopOk : BOOL;   (* in  SDI1.1 ESTOP *)
+END_VAR

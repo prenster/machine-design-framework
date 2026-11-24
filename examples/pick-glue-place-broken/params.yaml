@@ -5,10 +5,10 @@ params:
   speed_nom_cph: {value: 2400, unit: cycles/h, source: requirement}
   speed_max_cph: {value: 3000, unit: cycles/h, source: requirement}
 
-  x_vmax_mm_s:   {value: 5000,  unit: mm/s,   source: datasheet, note: "belt module catalog rating, derate to 80% at release"}
-  x_amax_mm_s2:  {value: 60000, unit: mm/s^2, source: datasheet}
-  z_vmax_mm_s:   {value: 1000,  unit: mm/s,   source: datasheet}
-  z_amax_mm_s2:  {value: 30000, unit: mm/s^2, source: datasheet}
+  x_vmax_mm_s:   {value: 5000,  unit: mm/s,   source: datasheet, from_part: X_MODULE.v_max_mm_s, note: "belt module catalog rating, derate to 80% at release"}
+  x_amax_mm_s2:  {value: 60000, unit: mm/s^2, source: datasheet, from_part: X_MODULE.a_max_mm_s2}
+  z_vmax_mm_s:   {value: 1000,  unit: mm/s,   source: datasheet, from_part: Z_MODULE.v_max_mm_s}
+  z_amax_mm_s2:  {value: 30000, unit: mm/s^2, source: datasheet, from_part: Z_MODULE.a_max_mm_s2}
 
   vac_on_delay_ms:   {value: 15,  unit: ms, source: assumed, calibrated_by: PT-03, note: "time to hold-force after valve command, incl. hose volume"}
   vac_off_delay_ms:  {value: 10,  unit: ms, source: assumed, calibrated_by: PT-03, note: "time to release with blow-off pulse"}
@@ -16,4 +16,14 @@ params:
   glue_off_delay_ms: {value: 2.5, unit: ms, source: assumed, calibrated_by: PT-04}
   sheet_slip_accel_mm_s2: {value: 40000, unit: mm/s^2, source: assumed, calibrated_by: PT-05,
                            note: "carrier acceleration at which the sheet shifts on the vacuum plate"}
+  sizing_torque_margin: {value: 1.25, unit: "-", source: requirement, note: "required torque x this <= motor rating"}
+  plc_scan_ms:          {value: 1.0,  unit: ms, source: requirement, note: "PLC task cycle; output timing resolution"}
   sheet_thickness_mm: {value: 0.15, unit: mm, source: measured, note: "caliper, 10 sheets, both stocks"}
+
+  # --- flexible sheet (SHEET-DYN). Per unit width. ---
+  sheet_grammage_gsm:          {value: 140,  unit: g/m^2, source: measured, note: "mill spec + scale, endsheet stock"}
+  sheet_bending_stiffness_mNm: {value: 1.2,  unit: mN*m, source: assumed, calibrated_by: PT-08,
+                                note: "D = E*t^3/12 per unit width; ~4 GPa, 0.15 mm. Cantilever droop test gives it directly"}
+  sheet_damping_ratio:         {value: 0.05, unit: "-", source: assumed, calibrated_by: PT-09}
+  sheet_drag_coefficient:      {value: 1.2,  unit: "-", source: assumed, calibrated_by: PT-09, note: "flat plate, normal flow"}
+  sheet_max_deflection_mm:     {value: 2.0,  unit: mm, source: requirement, note: "overhang must not flap more than this"}

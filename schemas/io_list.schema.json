@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "I/O list",
+  "description": "Source of truth for PLC I/O. GVL_IO.st is generated from it.",
+  "type": "object",
+  "required": ["signals"],
+  "properties": {"signals": {"type": "array", "items": {"type": "object", "required": ["tag", "dir", "type"], "additionalProperties": false,
+    "properties": {
+      "tag": {"type": "string", "pattern": "^[a-z][A-Za-z0-9]*$"},
+      "dir": {"enum": ["in", "out"]},
+      "type": {"enum": ["BOOL", "INT", "REAL"]},
+      "device": {"type": "string"}, "card": {"type": "string"}, "ch": {"type": "integer", "minimum": 0},
+      "virtual": {"type": "boolean", "description": "from the motion controller, not a physical channel"},
+      "cycle_valve": {"type": "string"}, "air_consumer": {"type": "string"},
+      "note": {"type": "string"}}}}}
+}

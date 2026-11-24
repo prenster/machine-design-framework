@@ -29,11 +29,15 @@ Read [`docs/PHILOSOPHY.md`](docs/PHILOSOPHY.md) for the reasoning.
 
 ```bash
 pip install -r requirements.txt
-make verify          # example station: should PASS (with physical tests still pending)
-make verify-broken   # deliberately broken copy: must FAIL, showing every planted mistake caught
+make verify          # example station: PASS (physical tests still pending)
+make verify-broken   # deliberately broken copy with 15 planted faults: must FAIL and name every one
+make plc P=<dir>     # regenerate PLC timing/I-O variable lists after changing cycle.yaml / io_list.yaml
 ```
 
-Output: a console verdict, `build/report.md` (checks, traceability, assumption audit) and `build/side_view.svg`.
+Output: a console verdict, `build/report.md` (checks, traceability, assumption audit), `build/side_view.svg`,
+`build/station_3d.png`, and `build/station.step` / `station.glb` (open in any STEP viewer).
+
+![3D station at pick, glue and place](docs/img/station_3d.png)
 
 ![Side view of the example station](docs/img/side_view.png)
 
@@ -42,18 +46,17 @@ signature. Carrier and sheet at pick (blue), glue (orange) and place (green); da
 
 ## What's verified today
 
-| Check | Proves |
+| Layer | Checks |
 |---|---|
-| CYC-LAW | Motion covers the full cycle; position and velocity are continuous (no impossible accelerations) |
-| CYC-LIMITS | Peak velocity/acceleration within catalog drive limits at max speed |
-| VALVE-TIMING | Effective valve windows including response delay, at every speed |
-| SWEEP-CLEARANCE | No interference, and minimum clearances, over the whole cycle (planar side view) |
-| PROD-PICK / CARRY / PLACE | The product is gripped before leaving, held through transfer without slipping, and released at rest on register |
-| GLUE-BEAD | Glue lands on the product, in the right place, at the right gap, at every speed |
-| Traceability | Every requirement verified by a check, a physical test or a review |
-| Assumption audit | Lists exactly which unmeasured numbers every PASS depends on |
+| Motion | Cam-law continuity, drive limits, valve timing at min/nom/max speed |
+| Geometry | **3D** interference/clearance sweep over the full cycle (build123d + FCL); planar sweep with the **flexible sheet** |
+| Product | Pick, carry (slip), place on register, glue bead position and gap |
+| Sheet physics | Overhang droop/oscillation (FE beam: gravity, Z acceleration, air drag) fed into geometry and glue checks |
+| BOM | Interface conflicts between connected parts; params vs datasheets; **servo sizing** (peak/RMS torque, rpm, inertia); air and 24 V budgets; sim assumptions vs datasheet |
+| Electrical | I/O channels, voltage/current vs card ratings, safety devices on safety inputs |
+| PLC | Generated timing/I-O lists in sync; the **real Structured Text program** run scan-by-scan against the plant with fault injection (missed pick, empty stack, double sheet, guard, e-stop, air loss) |
+| Trace | Every requirement verified by a check, test or review; every PASS lists the unmeasured numbers it rests on |
 
-Roadmap: 3D interference on code-CAD, tolerance stacks, PLC software-in-the-loop, flexible-body dynamics.
 See [`docs/VERIFICATION.md`](docs/VERIFICATION.md) for the trust ladder and what **no** check covers.
 
 ## Model tiers
@@ -79,7 +82,7 @@ Claude prints a switch banner when it is on the wrong model. See [`docs/MODEL_TI
 | `.claude/skills/` | Discipline skills: process, cycle, mechanical, drawings/DFM, controls, electrical, safety, physical tests |
 | `.claude/agents/gate-reviewer.md` | Independent reviewer subagent |
 | `tools/mdf/` | Verification toolchain |
-| `examples/` | Passing example and deliberately broken copy |
+| `examples/` | Passing example (with `cad/`, `plc/`, BOM, I/O, SIL scenarios) and deliberately broken copy (`FAULTS.md`) |
 | `templates/` | How to start a new station |
 
 ## Disclaimer

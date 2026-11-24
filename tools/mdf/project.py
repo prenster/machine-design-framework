@@ -20,6 +20,13 @@ FILES = {
     "layout": "layout.yaml",
     "tests": "tests.yaml",
 }
+OPTIONAL = {
+    "bom": "bom.yaml",
+    "constraints": "constraints.yaml",
+    "io_list": "io_list.yaml",
+    "assembly3d": "assembly3d.yaml",
+    "sil": "sil.yaml",
+}
 
 
 class ProjectError(Exception):
@@ -59,9 +66,11 @@ class Project:
 def load(root: str | Path) -> Project:
     root = Path(root)
     proj = Project(root=root)
-    for key, fname in FILES.items():
+    for key, fname in list(FILES.items()) + list(OPTIONAL.items()):
         path = root / fname
         if not path.exists():
+            if key in OPTIONAL:
+                continue
             raise ProjectError(f"missing {fname} in {root}")
         with path.open() as fh:
             doc = yaml.safe_load(fh)

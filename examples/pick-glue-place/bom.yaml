@@ -1,0 +1,245 @@
+# Bill of materials with specs, ports and connections.
+# EXAMPLE values: plausible but illustrative, not real catalog items (source: example).
+# In a real project every catalog part carries vendor + part_number and specs copied from the datasheet.
+parts:
+  # ---------------- X axis (static base; carriage moves) ----------------
+  - id: X_MODULE
+    description: "Belt-driven linear module, 700 mm stroke"
+    category: linear_module
+    qty: 1
+    source: example
+    specs: {v_max_mm_s: 5000, a_max_mm_s2: 60000, stroke_mm: 700, payload_max_kg: 10, feed_mm_per_rev: 100,
+            efficiency: 0.9, friction_n: 20, carriage_mass_kg: 1.2, input_inertia_kgcm2: 0.4, orientation: horizontal}
+    ports:
+      - {name: drive_shaft, type: shaft_in, spec: {diameter_mm: 14}, required: true}
+      - {name: carriage, type: mount_female, spec: {pattern: "ZX-60"}}
+  - id: X_MOTOR
+    description: "Servo motor, X axis"
+    category: servo_motor
+    qty: 1
+    source: example
+    specs: {rated_torque_nm: 3.3, peak_torque_nm: 10.5, max_speed_rpm: 4500, rotor_inertia_kgcm2: 2.2, mass_kg: 3.1}
+    ports:
+      - {name: shaft, type: shaft_out, spec: {diameter_mm: 14}, required: true}
+      - {name: power, type: motor_power_in, spec: {voltage_v: 400, current_a: 4.6}, required: true}
+      - {name: feedback, type: encoder_out, spec: {protocol: "single-cable digital"}, required: true}
+  - id: X_DRIVE
+    description: "Servo inverter, X axis (SEW MOVI-C class)"
+    category: servo_drive
+    qty: 1
+    source: example
+    specs: {supply_24v_current_a: 0.6}
+    ports:
+      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400, current_a: 5.5}}
+      - {name: feedback, type: encoder_in, spec: {protocol: "single-cable digital"}}
+      - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}, required: true}
+  # ---------------- Z axis (rides on X carriage) ----------------
+  - id: Z_MODULE
+    description: "Ball-screw lift module, 50 mm stroke, vertical"
+    category: linear_module
+    qty: 1
+    source: example
+    moves_with: x_transfer
+    specs: {v_max_mm_s: 1000, a_max_mm_s2: 30000, stroke_mm: 50, payload_max_kg: 5, feed_mm_per_rev: 10,
+            efficiency: 0.9, friction_n: 10, carriage_mass_kg: 0.3, input_inertia_kgcm2: 0.05, orientation: vertical, mass_kg: 1.8}
+    ports:
+      - {name: drive_shaft, type: shaft_in, spec: {diameter_mm: 11}, required: true}
+      - {name: base, type: mount_male, spec: {pattern: "ZX-60"}, required: true}
+  - id: Z_MOTOR
+    description: "Servo motor, Z axis"
+    category: servo_motor
+    qty: 1
+    source: example
+    moves_with: x_transfer
+    specs: {rated_torque_nm: 0.32, peak_torque_nm: 1.1, max_speed_rpm: 6000, rotor_inertia_kgcm2: 0.18, mass_kg: 0.9}
+    ports:
+      - {name: shaft, type: shaft_out, spec: {diameter_mm: 11}, required: true}
+      - {name: power, type: motor_power_in, spec: {voltage_v: 400, current_a: 1.1}, required: true}
+      - {name: feedback, type: encoder_out, spec: {protocol: "single-cable digital"}, required: true}
+  - id: Z_DRIVE
+    description: "Servo inverter, Z axis"
+    category: servo_drive
+    qty: 1
+    source: example
+    specs: {supply_24v_current_a: 0.5}
+    ports:
+      - {name: motor_power, type: motor_power_out, spec: {voltage_v: 400, current_a: 2.0}}
+      - {name: feedback, type: encoder_in, spec: {protocol: "single-cable digital"}}
+      - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}, required: true}
+  # ---------------- end effector (rides on Z) ----------------
+  - id: Z_BRACKET
+    description: "Bracket, Z slide to vacuum plate"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Offsets plate under the beam centreline; no catalog equivalent"
+    moves_with: z_lift
+    specs: {mass_kg: 0.4, material: "6061-T6"}
+  - id: VAC_PLATE
+    description: "Vacuum plate, 140 x 180 mm, perforated, Delrin face"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Plate pattern matches endsheet format; product-contact face"
+    moves_with: z_lift
+    specs: {mass_kg: 0.35}
+    ports:
+      - {name: vac_port, type: vacuum_in, spec: {thread: "G1/8"}, required: true}
+  - id: EJECTOR
+    description: "Compact vacuum ejector with blow-off"
+    category: vacuum_generator
+    qty: 1
+    source: example
+    moves_with: z_lift
+    specs: {mass_kg: 0.1, air_consumption_nl_min: 95, evacuation_time_ms: 12}
+    ports:
+      - {name: air_in, type: pneumatic_in, spec: {thread: "G1/8"}, required: true}
+      - {name: vac_out, type: vacuum_out, spec: {thread: "G1/8"}, required: true}
+  - id: VAC_SWITCH
+    description: "Vacuum switch, PNP"
+    category: sensor
+    qty: 1
+    source: example
+    moves_with: z_lift
+    specs: {mass_kg: 0.05, signal_voltage_v: 24, supply_24v_current_a: 0.03}
+  - id: VAC_VALVE
+    description: "3/2 solenoid valve feeding ejector"
+    category: solenoid_valve
+    qty: 1
+    source: example
+    specs: {coil_voltage_v: 24, coil_current_a: 0.1, supply_24v_current_a: 0.1, response_on_ms: 8}
+    ports:
+      - {name: out, type: pneumatic_out, spec: {thread: "G1/8"}, required: true}
+  # ---------------- glue ----------------
+  - id: GLUE_VALVE
+    description: "Cold-glue jet valve bar, 190 mm"
+    category: glue_valve
+    qty: 1
+    source: example
+    specs: {coil_voltage_v: 24, coil_current_a: 0.35, supply_24v_current_a: 0.35, response_on_ms: 1.2,
+            response_off_ms: 2.0, max_frequency_hz: 150}
+  - id: GLUE_UNIT
+    description: "Glue supply unit with ready signal"
+    category: glue_supply
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24, air_consumption_nl_min_continuous: 20}
+  # ---------------- sensors / operator / safety ----------------
+  - id: DOUBLE_SENSOR
+    description: "Ultrasonic double-sheet sensor"
+    category: sensor
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24, supply_24v_current_a: 0.08}
+  - id: AIR_SWITCH
+    description: "Pressure switch, main air"
+    category: sensor
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24, supply_24v_current_a: 0.02}
+  - id: GUARD_SWITCH
+    description: "Interlocked guard switch, safety-rated"
+    category: safety_device
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24, safety_rated: true}
+  - id: ESTOP
+    description: "Emergency stop pushbutton, safety-rated"
+    category: safety_device
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24, safety_rated: true}
+  - id: OP_PANEL
+    description: "Start / stop / reset pushbuttons"
+    category: operator_device
+    qty: 1
+    source: example
+    specs: {signal_voltage_v: 24}
+  - id: LAMP_FAULT
+    description: "Fault lamp 24 VDC LED"
+    category: indicator
+    qty: 1
+    source: example
+    specs: {coil_voltage_v: 24, coil_current_a: 0.02, supply_24v_current_a: 0.02}
+  # ---------------- control cabinet ----------------
+  - id: PLC
+    description: "Motion controller (MOVI-C CONTROLLER class), EtherCAT master"
+    category: controller
+    qty: 1
+    source: example
+    specs: {supply_24v_current_a: 0.8}
+    ports:
+      - {name: bus, type: fieldbus, spec: {protocol: EtherCAT}}
+  - id: DI1
+    description: "Digital input card, 8 ch, 24 VDC"
+    category: io_card
+    qty: 1
+    source: example
+    specs: {io_type: DI, channels: 8, voltage_v: 24, supply_24v_current_a: 0.1}
+  - id: DO1
+    description: "Digital output card, 8 ch, 24 VDC, 0.5 A/ch"
+    category: io_card
+    qty: 1
+    source: example
+    specs: {io_type: DO, channels: 8, voltage_v: 24, current_per_channel_a: 0.5, supply_24v_current_a: 0.1}
+  - id: SDI1
+    description: "Safety input module, 4 ch, 24 VDC"
+    category: io_card
+    qty: 1
+    source: example
+    specs: {io_type: SDI, channels: 4, voltage_v: 24, safety_rated: true, supply_24v_current_a: 0.1}
+  - id: PSU_24V
+    description: "24 VDC power supply, 10 A"
+    category: power_supply
+    qty: 1
+    source: example
+    specs: {output_current_a: 10}
+  - id: AIR_PREP
+    description: "Filter-regulator with soft-start/dump, 6 bar"
+    category: pneumatic
+    qty: 1
+    source: example
+    specs: {flow_nl_min: 600}
+  # ---------------- structure (geometry references) ----------------
+  - id: STACK_FENCE
+    description: "Stack front lay / fence"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Format-specific lay"
+    specs: {material: "6061-T6"}
+  - id: SIDE_GUIDE
+    description: "Stack side guide"
+    category: machined_part
+    qty: 2
+    source: custom
+    custom_reason: "Format-specific"
+  - id: BACKSTOP
+    description: "Signature registration backstop"
+    category: machined_part
+    qty: 1
+    source: custom
+    custom_reason: "Registration datum for placement"
+  - id: UPRIGHT
+    description: "Aluminium profile upright, beam support"
+    category: profile
+    qty: 2
+    source: example
+  - id: TABLE
+    description: "Machine table plate"
+    category: plate
+    qty: 1
+    source: example
+
+connections:
+  - [X_MOTOR.shaft, X_MODULE.drive_shaft]
+  - [X_DRIVE.motor_power, X_MOTOR.power]
+  - [X_MOTOR.feedback, X_DRIVE.feedback]
+  - [X_DRIVE.bus, PLC.bus]
+  - [Z_MOTOR.shaft, Z_MODULE.drive_shaft]
+  - [Z_DRIVE.motor_power, Z_MOTOR.power]
+  - [Z_MOTOR.feedback, Z_DRIVE.feedback]
+  - [Z_DRIVE.bus, PLC.bus]
+  - [Z_MODULE.base, X_MODULE.carriage]
+  - [VAC_VALVE.out, EJECTOR.air_in]
+  - [EJECTOR.vac_out, VAC_PLATE.vac_port]

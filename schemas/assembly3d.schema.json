@@ -1,0 +1,13 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "3D assembly for the collision sweep",
+  "type": "object",
+  "required": ["cad", "frames", "bodies"],
+  "properties": {
+    "cad": {"type": "string", "description": "build123d script; must define build(params) -> {body_id: Part}"},
+    "step_deg": {"type": "number"},
+    "frames": {"type": "object", "additionalProperties": {"type": "object", "properties": {"x": {"type": "string"}, "z": {"type": "string"}}}},
+    "bodies": {"type": "array", "items": {"type": "object", "required": ["id", "frame"], "additionalProperties": false,
+      "properties": {"id": {"type": "string"}, "frame": {"type": "string"}, "part": {"type": "string"}, "product": {"type": "boolean"}}}}
+  }
+}

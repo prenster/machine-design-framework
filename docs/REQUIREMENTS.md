@@ -9,8 +9,8 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 |---|---|---|
 | FR-001 | Every design fact (requirements, parameters, timing, geometry, BOM, I/O, PLC code, tests) is stored as text or code in git | doc |
 | FR-002 | All project data files validate against JSON schemas in `schemas/` | done |
-| FR-003 | The cycle diagram is the only place motion and valve timing are defined; PLC cam tables and sim inputs are generated from it | done (sim) / roadmap (PLC export) |
-| FR-004 | The BOM is generated from the CAD assembly and catalog database, never hand-edited | roadmap |
+| FR-003 | The cycle diagram is the only place motion and valve timing are defined; PLC timing constants and sim inputs are generated from it, staleness fails verify | done (PLC GVLs) / roadmap (drive cam-table export) |
+| FR-004 | The BOM carries specs, ports and connections; geometry and params reference it and are cross-checked | done (generation from CAD assembly: roadmap) |
 | FR-005 | GUI tool exports (MOVISUITE, CAD viewers, test loggers) are committed back to the repo | doc |
 
 ## Verification
@@ -29,11 +29,16 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 | FR-019 | Assumption audit: every assumed parameter names its calibrating test; the report lists what the verdict rests on | done |
 | FR-020 | A deliberately broken example demonstrates every check failing | done |
 | FR-021 | Side-view render of the cycle for human review | done |
-| FR-022 | 3D interference sweep on code-CAD geometry | roadmap |
+| FR-022 | 3D interference sweep on code-CAD geometry, all speeds, moving-vs-moving | done |
 | FR-023 | Tolerance stack-ups, worst case and Monte Carlo | roadmap |
-| FR-024 | Software-in-the-loop: soft-PLC running generated code against the model, with fault injection | roadmap |
-| FR-025 | Flexible-body/dynamics simulation (Chrono) with calibrated parameters | roadmap |
+| FR-024 | Software-in-the-loop: the real ST program against the plant model at scan time, with fault injection | done (ST subset); real soft-PLC roadmap |
+| FR-025 | Flexible sheet dynamics feeding geometry and process checks | done (FE beam); Chrono/aeroelastic roadmap |
 | FR-026 | CI runs verify on every push | done |
+| FR-027 | Interface compatibility between connected BOM parts | done |
+| FR-028 | Axis sizing (speed, accel, stroke, payload, peak/RMS torque, rpm, inertia ratio) from BOM data | done |
+| FR-029 | Project constraint rules across specs (budgets, frequencies, assumption-vs-datasheet guards) | done |
+| FR-030a | I/O mapping: channel, voltage, current, safety-rating checks | done |
+| FR-031a | 3D model exported (STEP, GLB) and rendered to an image on every verify | done |
 
 ## Process and roles
 
@@ -53,7 +58,7 @@ this repo, `doc` = defined as a rule/process in docs, `roadmap` = not yet built.
 |---|---|---|
 | FR-040 | Machinist drawings with GD&T from the 3D model, released only after G4 sign-off | roadmap |
 | FR-041 | Purchase list with three quotes per line for PO submission | roadmap |
-| FR-042 | I/O list, schematics, wire list, panel layout | roadmap |
-| FR-043 | PLC project: generated cam tables + IEC 61131-3 code + HMI tags | roadmap |
+| FR-042 | I/O list (done, checked against cards/devices); schematics, wire list, panel layout | partial |
+| FR-043 | PLC project: generated GVLs + IEC 61131-3 code (done); drive cam tables + HMI tags (roadmap) | partial |
 | FR-044 | ISO 12100 risk assessment and ISO 13849 safety-function list | roadmap (skill defines content) |
 | FR-045 | Commissioning procedure and measured-vs-predicted report | roadmap |

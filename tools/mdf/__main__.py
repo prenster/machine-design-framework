@@ -21,7 +21,15 @@ def main(argv=None) -> int:
     v = sub.add_parser("verify", help="run every check on a station project")
     v.add_argument("project")
     v.add_argument("--out", default=None, help="output dir (default <project>/build)")
+    g = sub.add_parser("plc", help="regenerate PLC GVLs from cycle.yaml / io_list.yaml")
+    g.add_argument("project")
     args = ap.parse_args(argv)
+
+    if args.cmd == "plc":
+        from . import plcgen
+        for pth in plcgen.write(load(args.project)):
+            print(f"wrote {pth}")
+        return 0
 
     try:
         proj = load(args.project)
@@ -36,12 +44,18 @@ def main(argv=None) -> int:
     out.mkdir(parents=True, exist_ok=True)
     (out / "report.md").write_text(markdown(proj, results, trace, audit))
     side_view_svg(proj, out / "side_view.svg")
+    if "assembly3d" in proj.data:
+        try:
+            from .render3d import render
+            render(proj, out / "station_3d.png")
+        except Exception as e:  # noqa: BLE001 - preview only
+            print(f"(3D preview skipped: {e})")
 
     for r in results:
         print(f"[{r.status:4}] {r.check_id:16} {r.speed or '':4} {r.summary}")
         if r.status != "PASS":
             for d in r.details:
-                if not d.startswith("tightest OK") and "-> effective" not in d:
+                if not d.startswith(("tightest OK", "t=")) and "-> effective" not in d:
                     print(f"         - {d}")
     for t in trace:
         if t["status"] != "PASS":

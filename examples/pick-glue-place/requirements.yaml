@@ -35,13 +35,53 @@ requirements:
     category: performance
     verification: {method: check, ref: [VALVE-TIMING, CYC-LIMITS]}
   - id: REQ-MECH-001
-    text: "No interference anywhere in the cycle; 2.0 mm minimum clearance except declared contact/close-approach windows."
+    text: "No interference anywhere in the cycle, in 3D; 2.0 mm minimum clearance except declared contact/close-approach windows."
     category: mechanical
-    verification: {method: check, ref: SWEEP-CLEARANCE}
+    verification: {method: check, ref: [SWEEP-CLEARANCE, SWEEP-3D]}
   - id: REQ-MECH-002
     text: "Motion laws continuous in position and velocity; all axes within catalog drive limits at max speed."
     category: mechanical
     verification: {method: check, ref: [CYC-LAW, CYC-LIMITS]}
+  - id: REQ-PROC-007
+    text: "Unsupported sheet overhang deflects less than 2 mm and never touches the machine before placement."
+    category: process
+    verification: {method: check, ref: [SHEET-DYN, SWEEP-CLEARANCE]}
+  - id: REQ-MECH-003
+    text: "Every axis sized from catalog data at max speed: speed, acceleration, stroke, payload, peak and RMS torque with 1.25 margin."
+    category: mechanical
+    verification: {method: check, ref: BOM-SIZING}
+  - id: REQ-MECH-004
+    text: "All connected components are interface-compatible and every spec stated in two places agrees."
+    category: mechanical
+    verification: {method: check, ref: [BOM-IFACE, BOM-XREF]}
+  - id: REQ-ELEC-001
+    text: "Every I/O point mapped to a real channel with matching voltage and current rating; safety devices on safety-rated inputs."
+    category: electrical
+    verification: {method: check, ref: IO-MAP}
+  - id: REQ-ELEC-002
+    text: "24 VDC and compressed-air demand at max speed within 75% / 70% of supply."
+    category: electrical
+    verification: {method: check, ref: [C-24V-BUDGET, C-AIR-BUDGET]}
+  - id: REQ-CTRL-001
+    text: "PLC timing constants are generated from the cycle diagram and I/O list, never hand-edited."
+    category: controls
+    verification: {method: check, ref: PLC-GEN}
+  - id: REQ-CTRL-002
+    text: "Missing or double sheets never produce glue on the machine; a double is never glued or placed."
+    category: controls
+    verification: {method: check, ref: [SIL-MISSED-PICK, SIL-STACK-EMPTY, SIL-DOUBLE-SHEET]}
+  - id: REQ-CTRL-003
+    text: "Guard, e-stop: master and glue off within one PLC scan; gripped sheet held, not dropped."
+    category: controls
+    verification: {method: check, ref: [SIL-GUARD-MID-GLUE, SIL-ESTOP-IN-TRANSFER]}
+  - id: REQ-CTRL-004
+    text: "Production sequence meets all process requirements including PLC scan quantisation, at every speed."
+    category: controls
+    verification: {method: check, ref: SIL-NOMINAL}
+  - id: REQ-SAFE-002
+    text: "Air loss: controlled fault within 25 ms. Sheet drop on air loss is accepted only if the risk assessment accepts it."
+    category: safety
+    verification: {method: check, ref: SIL-AIR-LOSS}
   - id: REQ-SAFE-001
     text: "Carrier travel zone fully guarded; guard interlock stops motion per the ISO 13849 performance level set by the risk assessment."
     category: safety

@@ -7,7 +7,11 @@ description: Mechanical design for machine stations - planar layout, parametric 
 ## Order of work
 1. Planar layout (`layout.yaml`) - side view, enough to run SWEEP and product-path checks. Pass verify here first.
 2. 3D code-CAD (`cad/*.py`, build123d preferred): parametric, dimensions from `params.yaml`, catalog parts imported as STEP.
-3. BOM generated from the assembly tree: part number, vendor, qty, catalog link, custom/catalog flag.
+3. `assembly3d.yaml` lists every CAD body with its frame (machine / x / xz / product) and BOM part; SWEEP-3D
+   checks it over the full cycle. Concept bodies are envelopes; replace with catalog STEP as the design matures,
+   keeping body ids.
+4. `bom.yaml`: every part with specs copied from the datasheet, ports, and connections. BOM-IFACE, BOM-XREF,
+   BOM-SIZING and constraints.yaml check it. Mark `moves_with` so axis payloads are right.
 
 ## Catalog first
 - Linear motion, bearings, shafts, profiles, fasteners: Misumi, Bosch Rexroth, igus.

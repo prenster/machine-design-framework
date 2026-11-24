@@ -56,3 +56,19 @@ tests:
     est_cost_usd: 0
     holdout: true
     status: planned
+  - id: PT-08
+    title: "Sheet bending stiffness (cantilever droop)"
+    purpose: "Calibrates sheet_bending_stiffness_mNm used by SHEET-DYN (overhang droop -> glue gap, clearances)."
+    calibrates: [sheet_bending_stiffness_mNm]
+    method: "Clamp a 200 mm wide strip flat at 20, 40, 60 mm overhang; measure tip droop with a height gauge. D = q*L^4/(8*droop). Both grain directions, both stocks."
+    equipment: [flat plate, clamp bar, height gauge or dial indicator]
+    est_cost_usd: 0
+    status: planned
+  - id: PT-09
+    title: "Overhang dynamics on the mock-up (high-speed video)"
+    purpose: "Calibrates damping and drag; checks for edgewise flutter the model cannot predict."
+    calibrates: [sheet_damping_ratio, sheet_drag_coefficient]
+    method: "Run the transfer on the kinematic mock-up at min/nom/max speed; film the overhang edge at 240 fps against a mm grid. Compare droop/oscillation to SHEET-DYN; any flutter at max speed is a finding."
+    equipment: [kinematic mock-up, 240 fps camera, mm grid backdrop]
+    est_cost_usd: 0
+    status: planned

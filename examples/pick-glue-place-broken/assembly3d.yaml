@@ -1,0 +1,30 @@
+# 3D assembly for SWEEP-3D. Geometry: cad/station.py (build123d). Clearance rules: layout.yaml rules
+# apply by body id, plus the extra rules here. Default clearance: layout.yaml default_min_mm.
+cad: cad/station.py
+step_deg: 0.5
+frames:
+  machine: {}
+  x:  {x: x_transfer}
+  xz: {x: x_transfer, z: z_lift}
+bodies:
+  - {id: table,              frame: machine, part: TABLE}
+  - {id: stack,              frame: machine}
+  - {id: stack_fence,        frame: machine, part: STACK_FENCE}
+  - {id: side_guide_l,       frame: machine, part: SIDE_GUIDE}
+  - {id: side_guide_r,       frame: machine, part: SIDE_GUIDE}
+  - {id: nozzle_body,        frame: machine, part: GLUE_VALVE}
+  - {id: glue_bracket_l,     frame: machine}
+  - {id: glue_bracket_r,     frame: machine}
+  - {id: signature,          frame: machine}
+  - {id: conveyor,           frame: machine}
+  - {id: signature_backstop, frame: machine, part: BACKSTOP}
+  - {id: beam,               frame: machine, part: X_MODULE}
+  - {id: upright_l,          frame: machine, part: UPRIGHT}
+  - {id: upright_r,          frame: machine, part: UPRIGHT}
+  - {id: carriage,           frame: x,  part: X_MODULE}
+  - {id: z_module,           frame: x,  part: Z_MODULE}
+  - {id: z_slide,            frame: xz, part: Z_MODULE}
+  - {id: z_bracket,          frame: xz, part: Z_BRACKET}
+  - {id: vacuum_plate,       frame: xz, part: VAC_PLATE}
+  - {id: ejector,            frame: xz, part: EJECTOR}
+  - {id: endsheet,           frame: product}

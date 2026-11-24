@@ -11,7 +11,8 @@ Then read `docs/PHILOSOPHY.md` once per session.
 2. Read the task, find its tier in `docs/MODEL_TIERS.md`, and if your model does not match the tier,
    print the switch banner (section 4) **before** starting work.
 3. Read the station/machine project you are working on: `requirements.yaml`, `cycle.yaml`,
-   `layout.yaml`, `params.yaml`, `tests.yaml`.
+   `layout.yaml`, `params.yaml`, `tests.yaml`, and where present `bom.yaml`, `io_list.yaml`,
+   `constraints.yaml`, `assembly3d.yaml` + `cad/`, `sil.yaml` + `plc/`.
 4. Run `make verify P=<project dir>` to see the current state before changing anything.
 
 ## 2. Non-negotiable rules
@@ -37,7 +38,11 @@ Then read `docs/PHILOSOPHY.md` once per session.
 8. **Every requirement is verified** by a `check`, a physical `test`, or a human `review`. No orphan requirements.
 9. **Gates belong to the human.** You may propose, model, check and document. You do not release
    drawings for manufacture, sign off safety, or close a gate. Say what needs the chief engineer's decision.
-10. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
+10. **Generated files are never edited.** `plc/generated/*.st` come from `cycle.yaml` / `io_list.yaml`
+    via `make plc`. Edit the source, regenerate, commit both.
+11. **Specs live once.** A datasheet number lives in `bom.yaml`; `params.yaml` references it with
+    `from_part`. An assumed number may never be more optimistic than the datasheet (constraint guards).
+12. **Speed ranges, not speed points.** Every timing/motion claim must hold at min, nominal and max
     speed. Valve and sensor delays are fixed in milliseconds, so they shift in degrees as speed changes.
 
 ## 3. Definition of done (any design change)

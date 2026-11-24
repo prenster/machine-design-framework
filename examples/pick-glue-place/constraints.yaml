@@ -1,0 +1,27 @@
+# Cross-spec rules. Namespace: part.<ID>.<spec>, param.<name>, axis.<id>.<derived>, budget.<name>,
+# cycles_per_s_max, cph_max.   axis derived: v_peak a_peak payload_kg moving_mass_kg force_peak_n
+# torque_peak_nm torque_rms_nm speed_peak_rpm inertia_ratio pos_min pos_max
+constraints:
+  - id: C-AIR-BUDGET
+    text: "Compressed-air demand at max speed within 70% of the air-prep unit's flow"
+    expr: "budget.air_nl_min <= part.AIR_PREP.flow_nl_min * 0.7"
+  - id: C-24V-BUDGET
+    text: "24 VDC load within 75% of the power supply"
+    expr: "budget.current_24v_a <= part.PSU_24V.output_current_a * 0.75"
+  - id: C-GLUE-FREQ
+    text: "Glue valve can cycle at max machine speed"
+    expr: "cycles_per_s_max <= part.GLUE_VALVE.max_frequency_hz"
+  - id: C-GLUE-ASSUME-ON
+    text: "Assumed glue on-delay is not more optimistic than the datasheet"
+    expr: "param.glue_on_delay_ms >= part.GLUE_VALVE.response_on_ms"
+    fail_message: "the simulation is using a faster valve than the one in the BOM"
+  - id: C-GLUE-ASSUME-OFF
+    text: "Assumed glue off-delay is not more optimistic than the datasheet"
+    expr: "param.glue_off_delay_ms >= part.GLUE_VALVE.response_off_ms"
+  - id: C-VAC-ASSUME
+    text: "Assumed vacuum build time covers valve response plus ejector evacuation time"
+    expr: "param.vac_on_delay_ms >= part.VAC_VALVE.response_on_ms + part.EJECTOR.evacuation_time_ms * 0.5"
+    fail_message: "vacuum assumed to build faster than the BOM parts can deliver"
+  - id: C-Z-HOLD
+    text: "Z motor holds the vertical load continuously (gravity) within rated torque"
+    expr: "axis.z_lift.moving_mass_kg * 9.81 * part.Z_MODULE.feed_mm_per_rev / 1000 / 6.2832 / part.Z_MODULE.efficiency <= part.Z_MOTOR.rated_torque_nm * 0.5"

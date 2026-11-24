@@ -1,57 +1,83 @@
 # Verification: what the checks prove, and what they don't
 
 The question this framework exists to answer: **can Claude design a machine without doing stupid
-things**, like putting parts where the product isn't, feeding the product to the wrong spot,
-gluing air, or timing that only works at one speed?
+things?** That means putting parts where the product isn't, feeding the product to the wrong spot,
+gluing air, sizing a motor that can't do the job, wiring a 1.2 A coil to a 0.5 A output, or shipping PLC
+code that disagrees with the timing chart.
 
-Answer: Claude by itself, reasoning in its head, **no, not reliably**. Claude writing the design as
-data and getting a deterministic verdict on every change: **yes, for everything a check covers.**
-The work is making sure the checks cover what matters, and being honest about what they don't.
+Answer: Claude by itself, reasoning in its head, **no, not reliably**. Claude writing the design as data and
+code and getting a deterministic verdict on every change: **yes, for everything a check covers.** The work
+is making the checks cover what matters, and being honest about what they don't.
 
-## Demonstration (in this repo)
+## The checks
 
-`examples/pick-glue-place` passes. `examples/pick-glue-place-broken` contains four plausible mistakes
-of the kind made when reasoning about a machine without checking:
-
-| Planted fault | Caught by | What the report says |
-|---|---|---|
-| Place position typed 594 instead of 600 | PROD-PLACE, SWEEP | registration error −6.1 mm; plate interferes with placed sheet |
-| Glue pass at 3 mm height instead of 0 | GLUE-BEAD | gap 4.0 mm; ~50% of the shot lands on the machine |
-| Vacuum released early "to save time" | PROD-PLACE | released 7–9 mm above the signature while moving 180–360 mm/s |
-| Glue-pass speed changed, neighbours not updated | CYC-LAW | velocity jump at 110° and 150°: infinite acceleration |
-
-While the example was being written, the checker also caught two real errors in the first draft:
-the sheet's leading edge hit the signature backstop during the glue pass, and transfer
-acceleration at max speed exceeded the sheet-slip limit. Both were fixed in the design, not the check.
-
-## The trust ladder
-
-| Level | What | Status here | Trust |
+| Layer | Check | Proves | Engine |
 |---|---|---|---|
-| L0 | Schema validation: every file well-formed, every assumption names its test | **implemented** | Total |
-| L1 | Cycle laws: coverage, position/velocity continuity, drive limits at max speed | **implemented** | Exact (math) |
-| L2 | Planar (side-view) sweep: every moving body vs. every static body at 0.25° steps, all speeds, declared contact windows | **implemented** | Exact for the 2D model. Misses out-of-plane geometry |
-| L3 | Product path: pick/carry/place ports, grip timing incl. valve delays, inertial slip, glue bead location and gap, all speeds | **implemented** | Exact given the parameters. **Only as good as the assumed delays and limits** |
-| L4 | 3D interference sweep on code-CAD (build123d → mesh, per-angle collision) | roadmap | Exact for geometry |
-| L5 | Tolerance stack-ups (worst-case + Monte Carlo) on critical chains | roadmap | Good, if the stacks are chosen correctly (TIER-A + review) |
-| L6 | Software-in-the-loop: real PLC code (CODESYS soft-PLC) driving the model over OPC UA/Modbus; fault injection (double sheet, missing sheet, jam, e-stop) | roadmap | Good for logic and timing; not for drive dynamics |
-| L7 | Dynamics: Project Chrono (rigid + flexible/FEA bodies): sheet flutter, deflection under load, vibration | roadmap | **Low until calibrated** against physical tests |
-| L8 | Physical tests and holdout predictions | process in `tests.yaml` | Ground truth |
+| Data | schema | Every file well-formed; every assumption names its calibrating test | jsonschema |
+| Motion | CYC-LAW | Full-cycle coverage; position/velocity continuous; jerk warnings | analytic cam laws |
+| | CYC-LIMITS | Peak v/a within drive limits at max speed | analytic |
+| | VALVE-TIMING | Effective valve windows (ms delays → degrees) at min/nom/max speed | analytic |
+| Geometry | SWEEP-CLEARANCE | Planar side-view clearance over the cycle, with the **flexible** sheet | shapely |
+| | **SWEEP-3D** | Full 3D interference and clearance over the cycle, all speeds, product attached/released at the real valve times; moving-vs-moving across frames | build123d → FCL; exact overlap by manifold boolean |
+| Product | PROD-PICK / CARRY / PLACE | Grip before departure; slip limit during carry; release at rest on register | analytic |
+| | GLUE-BEAD | Glue on the product, in position, at the true gap (incl. sheet droop), all speeds | analytic + SHEET-DYN |
+| | **SHEET-DYN** | Overhang droop/oscillation from gravity, Z accelerations and air drag; feeds the deformed sheet into the sweep and glue checks | Euler-Bernoulli FE beam, Newmark integration |
+| BOM | **BOM-IFACE** | Connected ports agree: shaft/bore, threads, voltages, drive vs motor current, encoder/fieldbus protocols; required ports connected | rule table |
+| | **BOM-XREF** | Every fact stated twice agrees (params vs datasheet specs); every geometry part exists in the BOM | cross-reference |
+| | **BOM-SIZING** | Each axis vs its module and motor at max speed: speed, accel, stroke, payload, peak and RMS torque with margin, rpm, inertia ratio | torque profile over the cycle |
+| | **C-*** (constraints.yaml) | Project rules across specs: air and 24 V budgets, valve frequency, **sim assumptions not faster than the datasheet** | safe expression evaluator |
+| Electrical | **IO-MAP** | Channels exist and don't collide; coil voltage/current vs output rating; safety devices on safety inputs; every cycle valve has an output | rule table |
+| Controls | **PLC-GEN** | Generated GVLs (timing, I/O) match cycle.yaml / io_list.yaml | hash compare |
+| | **PLC-COMPILE** | The Structured Text parses and links | IEC 61131-3 ST subset → Python transpiler |
+| | **SIL-*** | The **actual ST program** runs against the plant model at real scan time, with fault injection: production, missed pick, empty stack, double sheet, guard, e-stop, air loss | scan-by-scan co-simulation |
+| Trace | traceability / assumption audit | Every requirement has a check, test or review; every PASS lists the unmeasured numbers it depends on | report |
 
-## What no check here covers (always state these)
+## Demonstration
 
-- Sheet behaviour as a flexible body: air under the sheet, flutter at speed, curl, static, grain direction.
-- Double-sheet picks, stack separation, ream and humidity variation.
-- Adhesive behaviour beyond on/off delay: stringing, spatter, open time, tack development.
-- Structural stiffness, fatigue, frame vibration at cycle frequency and harmonics.
-- Wear, contamination, maintenance access, operator ergonomics.
-- Safety. The risk assessment is a review item, not a check.
+`examples/pick-glue-place` passes everything (physical tests pending). `examples/pick-glue-place-broken`
+contains **15 planted faults** (see its `FAULTS.md`): 4 timing mistakes, 1 flexible-sheet, 3 that
+exist only in 3D, 5 BOM/electrical, 2 PLC. Every one is caught and named. CI runs both on every push.
 
-Every item here becomes a physical test or a human review, never an assumption that quietly passes.
+While the example was being built, the checks also caught **five real errors in the first drafts**:
+
+1. sheet leading edge hitting the signature backstop during the glue pass (planar sweep)
+2. transfer acceleration above the sheet-slip limit at max speed (PROD-CARRY)
+3. X motor RMS torque at 101% of rating with margin (BOM-SIZING)
+4. Z bracket rising into the Z module body at full lift, invisible in side view (SWEEP-3D)
+5. touching contacts misreported as interference: a bug in the checker itself, found by looking at results that didn't make physical sense
+
+The fixes went into the design, except #5, which was fixed in the checker and is covered by the broken example.
+
+## Trust ladder
+
+| Level | What | Status | Trust |
+|---|---|---|---|
+| L0 | Schemas, assumption bookkeeping | done | Total |
+| L1 | Motion laws, drive limits, valve timing | done | Exact (math) |
+| L2 | Planar sweep incl. flexible sheet | done | Exact for the side-view model |
+| L3 | Product path, glue placement | done | Exact given the parameters; **only as good as the assumed delays and limits** |
+| L4 | 3D sweep on code-CAD | done | Exact for the modelled geometry; concept models are envelopes until replaced with catalog STEP |
+| L5 | BOM interfaces, sizing, budgets, I/O | done | As good as the specs entered; specs must come from datasheets |
+| L6 | PLC software-in-the-loop with fault injection | done | Good for logic, sequencing, scan timing; axes follow the cam exactly (no drive dynamics), no fieldbus latency |
+| L7 | Flexible sheet dynamics | done (beam model) | **Low until calibrated** (PT-08, PT-09); no aeroelastic flutter |
+| L8 | Tolerance stack-ups (worst case + Monte Carlo) | roadmap | |
+| L9 | Real controller in the loop (CODESYS soft-PLC / MOVI-C bench axis) | roadmap / bench | |
+| L10 | Physical tests and holdout predictions | process in `tests.yaml` | Ground truth |
+
+## What no check covers (always state these)
+
+- **Edgewise aeroelastic flutter**, air cushions at pick/place, curl, static, humidity, grain variation.
+- Double-sheet picks and stack separation (physical test PT-06).
+- Adhesive behaviour beyond on/off delay: stringing, spatter, open time, tack.
+- Structural stiffness, frame vibration, fatigue, wear. Concept 3D bodies are envelopes.
+- Drive dynamics (following error, tuning) and fieldbus/I/O latency. Bench test on a real axis.
+- **Safety.** SIL scenarios check the sequencing program's reactions; the safety functions themselves run on
+  a safety controller and need a qualified person's risk assessment and validation.
+- Whether the PLC subset interpreter matches the target runtime exactly. Run the same ST in CODESYS /
+  MOVI-C before commissioning.
 
 ## Adding a check
 
-1. Write it in `tools/mdf/checks.py` as a deterministic function of the project files.
-2. Give it an ID, add it to `ALL_CHECKS`, and reference it from the requirements it verifies.
-3. Add a broken example (or a fault in the existing one) that it must catch. A check that has never
-   failed has never been tested.
+1. Make it a deterministic function of the project files (`tools/mdf/`).
+2. Give it an ID, reference it from the requirements it verifies.
+3. Plant a fault in the broken example that only it catches. A check that has never failed has never been tested.

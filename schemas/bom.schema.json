@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Bill of materials with specs, ports and connections",
+  "type": "object",
+  "required": ["parts"],
+  "properties": {
+    "parts": {"type": "array", "items": {
+      "type": "object", "required": ["id", "description", "category", "qty", "source"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*$"},
+        "description": {"type": "string"},
+        "category": {"type": "string"},
+        "qty": {"type": "integer", "minimum": 1},
+        "source": {"enum": ["catalog", "custom", "example"]},
+        "vendor": {"type": "string"},
+        "part_number": {"type": "string"},
+        "custom_reason": {"type": "string"},
+        "moves_with": {"type": "string", "description": "axis id the part rides on (mass counts toward that axis)"},
+        "specs": {"type": "object"},
+        "ports": {"type": "array", "items": {"type": "object", "required": ["name", "type"], "properties": {
+          "name": {"type": "string"}, "type": {"type": "string"}, "spec": {"type": "object"}, "required": {"type": "boolean"}}}}
+      },
+      "allOf": [{"if": {"properties": {"source": {"const": "custom"}}}, "then": {"required": ["custom_reason"]}}]
+    }},
+    "connections": {"type": "array", "items": {"type": "array", "items": {"type": "string", "pattern": "^[A-Z][A-Z0-9_]*\\.[a-z0-9_]+$"}, "minItems": 2, "maxItems": 2}}
+  }
+}
